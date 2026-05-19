@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Symptom Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sage: #4A6652;
+    --sage-light: #6a8f72;
+    --sage-pale: #e8f0ea;
+    --sage-mid: #c5d9c9;
+    --cream: #faf8f4;
+    --text: #2a2a2a;
+    --text-muted: #7a7a7a;
+    --white: #ffffff;
+    --border: #dde8df;
+    --severe: #c0392b;
+    --moderate: #e67e22;
+    --mild: #27ae60;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    color: var(--sage);
+    letter-spacing: -0.5px;
+  }
+
+  header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  #chat-container {
+    width: 100%;
+    max-width: 560px;
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 24px rgba(74,102,82,0.08);
+    display: flex;
+    flex-direction: column;
+    min-height: 480px;
+    max-height: 600px;
+    overflow: hidden;
+  }
+
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 20px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+
+  .msg {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    animation: fadeUp 0.25s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.assistant { flex-direction: row; }
+  .msg.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--sage);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: white;
+    flex-shrink: 0;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+  }
+
+  .bubble {
+    max-width: 78%;
+    padding: 11px 15px;
+    border-radius: 16px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    font-weight: 400;
+  }
+
+  .msg.assistant .bubble {
+    background: var(--sage-pale);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg.user .bubble {
+    background: var(--sage);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+
+  .bubble.typing span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--sage);
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+    margin: 0 2px;
+  }
+  .bubble.typing span:nth-child(2) { animation-delay: 0.2s; }
+  .bubble.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  #input-area {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    background: var(--white);
+  }
+
+  #user-input {
+    flex: 1;
+    border: 1.5px solid var(--border);
+    border-radius: 24px;
+    padding: 10px 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.87rem;
+    outline: none;
+    color: var(--text);
+    transition: border-color 0.2s;
+    background: var(--cream);
+  }
+
+  #user-input:focus { border-color: var(--sage); }
+  #user-input:disabled { opacity: 0.5; }
+
+  #send-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--sage);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.1s;
+    flex-shrink: 0;
+  }
+
+  #send-btn:hover { background: var(--sage-light); }
+  #send-btn:active { transform: scale(0.93); }
+  #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  #send-btn svg { fill: white; width: 16px; height: 16px; }
+
+  #summary-card {
+    display: none;
+    width: 100%;
+    max-width: 560px;
+    margin-top: 18px;
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(74,102,82,0.06);
+  }
+
+  #summary-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    color: var(--sage);
+    margin-bottom: 14px;
+  }
+
+  .symptom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--sage-pale);
+    font-size: 0.84rem;
+  }
+
+  .symptom-row:last-child { border-bottom: none; }
+  .symptom-name { color: var(--text-muted); }
+
+  .severity-badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .badge-severe { background: #fdecea; color: var(--severe); }
+  .badge-moderate { background: #fef3e8; color: var(--moderate); }
+  .badge-mild { background: #eafaf1; color: var(--mild); }
+  .badge-no { background: #f0f0f0; color: #999; }
+
+  #done-msg {
+    display: none;
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--sage-pale);
+    border-radius: 12px;
+    border: 1px solid var(--sage-mid);
+    font-size: 0.84rem;
+    color: var(--sage);
+    text-align: center;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>How are you feeling today?</h1>
+  <p id="today-date"></p>
+</header>
+
+<div id="chat-container">
+  <div id="messages"></div>
+  <div id="input-area">
+    <input type="text" id="user-input" placeholder="Type your response..." autocomplete="off" />
+    <button id="send-btn">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div id="summary-card">
+  <h2>Today's Summary</h2>
+  <div id="summary-rows"></div>
+</div>
+
+<div id="done-msg">✓ All done! Jon will be notified.</div>
+
+<script>
+  const WORKER_URL = 'https://symptom-proxy.jsouthphotos.workers.dev';
+
+  const TODAY = new Date();
+  const dateStr = TODAY.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('today-date').textContent = dateStr;
+
+  const SYSTEM_PROMPT = `You are a warm, gentle health assistant helping a woman log her daily symptoms into a tracker. Today is ${dateStr}.
+
+The symptom tracker has these columns:
+- Migraine (Mild / Moderate / Severe / no)
+- Nausea (Mild / Moderate / Severe / no)
+- Pelvic Pain (Mild / Moderate / Severe / no)
+- Back Pain (Mild / Moderate / Severe / no)
+- Constipation (Mild / Moderate / Severe / no)
+- Fatigue (Mild / Moderate / Severe / no)
+- Nerve Pain (Mild / Moderate / Severe / no)
+- Insomnia (nights of) — a number or "no"
+- Abdomen Discomfort (Mild / Moderate / Severe / no)
+- Neck & Shoulder Pain (Mild / Moderate / Severe / no)
+- Appetite (Normal / Abnormal)
+
+Your job: Have a natural, empathetic conversation to find out what she's experiencing today. Ask conversationally — don't list all symptoms at once. Group related ones. Be warm and brief.
+
+When she says she's done or has nothing more to add, output a JSON block like this at the end of your message:
+
+<SYMPTOM_DATA>
+{
+  "migraine": "no",
+  "nausea": "Mild",
+  "pelvicPain": "Severe",
+  "backPain": "no",
+  "constipation": "no",
+  "fatigue": "Moderate",
+  "nervePain": "no",
+  "insomnia": "no",
+  "abdomenDiscomfort": "no",
+  "neckShoulderPain": "no",
+  "appetite": "Normal"
+}
+</SYMPTOM_DATA>
+
+Use "no" for anything she didn't mention. Only output the SYMPTOM_DATA block once you have enough info and she signals she's done.`;
+
+  let conversationHistory = [];
+  let isWaiting = false;
+  let sessionComplete = false;
+
+  const messagesEl = document.getElementById('messages');
+  const inputEl = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+
+  function scrollBottom() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function addMessage(role, text) {
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+    if (role === 'assistant') {
+      div.innerHTML = `<div class="avatar">S</div><div class="bubble">${text}</div>`;
+    } else {
+      div.innerHTML = `<div class="bubble">${text}</div>`;
+    }
+    messagesEl.appendChild(div);
+    scrollBottom();
+  }
+
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'msg assistant';
+    div.id = 'typing-indicator';
+    div.innerHTML = `<div class="avatar">S</div><div class="bubble typing"><span></span><span></span><span></span></div>`;
+    messagesEl.appendChild(div);
+    scrollBottom();
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typing-indicator');
+    if (t) t.remove();
+  }
+
+  async function callAPI(messages) {
+    const response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: messages
+      })
+    });
+    const data = await response.json();
+    return data.content[0].text;
+  }
+
+  function showSummary(data) {
+    const card = document.getElementById('summary-card');
+    const rows = document.getElementById('summary-rows');
+    card.style.display = 'block';
+    document.getElementById('done-msg').style.display = 'block';
+    rows.innerHTML = '';
+
+    const labels = {
+      migraine: 'Migraine', nausea: 'Nausea', pelvicPain: 'Pelvic Pain',
+      backPain: 'Back Pain', constipation: 'Constipation', fatigue: 'Fatigue',
+      nervePain: 'Nerve Pain', insomnia: 'Insomnia', abdomenDiscomfort: 'Abdomen Discomfort',
+      neckShoulderPain: 'Neck & Shoulder Pain', appetite: 'Appetite'
+    };
+
+    for (const [key, val] of Object.entries(data)) {
+      const row = document.createElement('div');
+      row.className = 'symptom-row';
+      const badge = val === 'Severe' ? 'badge-severe' : val === 'Moderate' ? 'badge-moderate' : val === 'Mild' ? 'badge-mild' : 'badge-no';
+      row.innerHTML = `<span class="symptom-name">${labels[key] || key}</span><span class="severity-badge ${badge}">${val}</span>`;
+      rows.appendChild(row);
+    }
+  }
+
+  async function handleSend() {
+    const text = inputEl.value.trim();
+    if (!text || isWaiting || sessionComplete) return;
+
+    inputEl.value = '';
+    addMessage('user', text);
+    conversationHistory.push({ role: 'user', content: text });
+
+    isWaiting = true;
+    inputEl.disabled = true;
+    sendBtn.disabled = true;
+    showTyping();
+
+    try {
+      const reply = await callAPI(conversationHistory);
+      removeTyping();
+
+      const dataMatch = reply.match(/<SYMPTOM_DATA>([\s\S]*?)<\/SYMPTOM_DATA>/);
+      const displayText = reply.replace(/<SYMPTOM_DATA>[\s\S]*?<\/SYMPTOM_DATA>/g, '').trim();
+
+      conversationHistory.push({ role: 'assistant', content: reply });
+      addMessage('assistant', displayText);
+
+      if (dataMatch) {
+        try {
+          const parsed = JSON.parse(dataMatch[1].trim());
+          sessionComplete = true;
+          showSummary(parsed);
+          inputEl.disabled = true;
+          sendBtn.disabled = true;
+          return;
+        } catch(e) {}
+      }
+    } catch(e) {
+      removeTyping();
+      addMessage('assistant', 'Something went wrong. Please try again.');
+    }
+
+    isWaiting = false;
+    inputEl.disabled = false;
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+
+  async function init() {
+    inputEl.disabled = true;
+    sendBtn.disabled = true;
+    showTyping();
+
+    const opening = { role: 'user', content: "Hi, I'm ready to log my symptoms for today." };
+    conversationHistory.push(opening);
+
+    try {
+      const reply = await callAPI(conversationHistory);
+      removeTyping();
+      conversationHistory.push({ role: 'assistant', content: reply });
+      addMessage('assistant', reply);
+    } catch(e) {
+      removeTyping();
+      addMessage('assistant', 'Hi! How are you feeling today? Let\'s log your symptoms. 😊');
+    }
+
+    inputEl.disabled = false;
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+
+  sendBtn.addEventListener('click', handleSend);
+  inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
+
+  init();
+</script>
+</body>
+</html>
