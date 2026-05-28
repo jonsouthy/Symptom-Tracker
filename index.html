@@ -1344,8 +1344,8 @@ function rangeFromPreset(preset) {
     to   = today;
   } else {
     // 'all' — use a fixed far-back date so the worker can read ALL monthly tabs
-    // The worker filters to only existing tabs, so non-existent months are skipped
-    from = '2024-01-01';
+    // Each month is fetched individually; missing tabs are skipped silently
+    from = '2025-01-01';
     to   = today;
   }
   return { from, to };
