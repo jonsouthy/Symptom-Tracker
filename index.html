@@ -462,6 +462,32 @@
     font-size: 0.86rem; color: var(--text-muted);
   }
 
+  /* AI insights card */
+  .insights-trigger {
+    width: 100%; padding: 13px; border-radius: 14px;
+    border: 1.5px dashed var(--sage-mid); background: var(--white);
+    font-family: 'Outfit', sans-serif; font-size: 0.88rem; font-weight: 500;
+    color: var(--sage); cursor: pointer; -webkit-appearance: none;
+    transition: all 0.15s ease;
+  }
+  .insights-trigger:active { background: var(--sage-pale); }
+  .insights-trigger:disabled { opacity: 0.5; cursor: default; }
+  .insights-dots span {
+    display: inline-block; width: 6px; height: 6px; background: var(--sage-mid);
+    border-radius: 50%; animation: blink 1.2s infinite; margin: 0 2px;
+  }
+  .insights-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .insights-dots span:nth-child(3) { animation-delay: 0.4s; }
+  .insights-body {
+    font-size: 0.86rem; line-height: 1.65; color: var(--text);
+    white-space: pre-wrap;
+  }
+  .insights-body strong { color: var(--sage); font-weight: 600; }
+  .insights-meta {
+    margin-top: 10px; font-size: 0.68rem; color: var(--text-muted);
+    font-style: italic;
+  }
+
   /* =====================================================================
      PRINT STYLESHEET — only the report content prints
      ===================================================================== */
@@ -473,6 +499,7 @@
     #reports-close-btn, #reports-pdf-btn, #range-presets { display: none !important; }
     #reports-content { max-width: 100% !important; padding: 0 !important; }
     .report-card { break-inside: avoid; border: 1px solid #ccc; }
+    .insights-trigger { display: none !important; }
     body { background: white !important; color: black !important; font-size: 11pt; }
     .report-card-title { color: #2a5a3a !important; }
     .summary-stat { background: #f4f4f4 !important; }
@@ -1548,6 +1575,148 @@ function renderReport(history, from, to) {
     }
     moodCard.appendChild(strip);
     body.appendChild(moodCard);
+  }
+
+  // ── AI insights ────────────────────────────────────────────────────────────
+  const insightsCard = document.createElement('div');
+  insightsCard.className = 'report-card';
+  insightsCard.id = 'insights-card';
+  insightsCard.innerHTML = '<div class="report-card-title">Insights</div>';
+
+  const insightsContent = document.createElement('div');
+  insightsContent.id = 'insights-content';
+
+  const triggerBtn = document.createElement('button');
+  triggerBtn.className = 'insights-trigger';
+  triggerBtn.textContent = '✦ Analyse patterns in this range';
+  triggerBtn.onclick = () => runInsightsAnalysis(history, from, to, days, loggedDays, moodDays, insightsContent, triggerBtn);
+
+  insightsContent.appendChild(triggerBtn);
+  insightsCard.appendChild(insightsContent);
+  body.appendChild(insightsCard);
+}
+
+// Build a compact plain-text summary of the data to send to Claude
+function buildDataSummary(history, from, to, days, loggedDays, moodDays) {
+  const lines = [];
+  lines.push(`Date range: ${prettyDateFromIso(from)} – ${prettyDateFromIso(to)}`);
+  lines.push(`Days in range: ${days.filter(d => d <= isoKey(jamaicaNow())).length} (${loggedDays.length} logged)`);
+  lines.push('');
+
+  // Per-symptom breakdown
+  lines.push('Symptom frequency (out of ' + loggedDays.length + ' logged days):');
+  for (const key of SYMPTOM_KEYS_ORDERED) {
+    let mild = 0, moderate = 0, severe = 0;
+    for (const iso of loggedDays) {
+      const v = history.logs[iso].data[key] || '';
+      if (v === 'Severe') severe++;
+      else if (v === 'Moderate' || v === 'Abnormal') moderate++;
+      else if (v === 'Mild') mild++;
+    }
+    const anyDays = mild + moderate + severe;
+    if (anyDays > 0) {
+      const parts = [];
+      if (mild)     parts.push(`Mild ${mild}d`);
+      if (moderate) parts.push(`Moderate ${moderate}d`);
+      if (severe)   parts.push(`Severe ${severe}d`);
+      lines.push(`  ${SYMPTOM_LABELS_SHORT[key]}: ${parts.join(', ')} (${anyDays} total days)`);
+    }
+  }
+  lines.push('');
+
+  // Mood distribution
+  if (moodDays.length > 0) {
+    lines.push('Mood entries (' + moodDays.length + ' days):');
+    const moodCounts = {};
+    for (const iso of moodDays) {
+      const m = history.moods[iso].mood;
+      moodCounts[m] = (moodCounts[m] || 0) + 1;
+    }
+    for (const [mood, count] of Object.entries(moodCounts)) {
+      lines.push(`  ${mood}: ${count} days`);
+    }
+    lines.push('');
+  }
+
+  // Severity overview
+  const sevCounts = { none: 0, mild: 0, moderate: 0, severe: 0 };
+  for (const iso of loggedDays) {
+    sevCounts[history.logs[iso].severity || 'none']++;
+  }
+  lines.push(`Overall severity breakdown:`);
+  lines.push(`  Symptom-free: ${sevCounts.none}d, Mild: ${sevCounts.mild}d, Moderate: ${sevCounts.moderate}d, Severe: ${sevCounts.severe}d`);
+
+  return lines.join('\n');
+}
+
+async function runInsightsAnalysis(history, from, to, days, loggedDays, moodDays, container, triggerBtn) {
+  triggerBtn.disabled = true;
+  triggerBtn.textContent = 'Analysing…';
+
+  // Show typing dots while waiting
+  const dotsDiv = document.createElement('div');
+  dotsDiv.className = 'insights-dots';
+  dotsDiv.style.marginTop = '10px';
+  dotsDiv.innerHTML = '<span></span><span></span><span></span>';
+  container.appendChild(dotsDiv);
+
+  const dataSummary = buildDataSummary(history, from, to, days, loggedDays, moodDays);
+
+  const systemPrompt = `You are a warm, thoughtful health insights assistant helping someone manage endometriosis affecting their digestive system. Your role is to notice patterns in symptom and mood data and offer gentle, practical observations.
+
+Guidelines:
+- Use warm, calm language — never alarming or clinical
+- Note both what's been difficult AND any positive patterns or improvements
+- Identify correlations between symptoms if they appear
+- Mention anything that might be worth discussing with a doctor
+- Keep it under 280 words, written in short readable paragraphs
+- Use **bold** sparingly to highlight the most important observations
+- Do not give medical advice or diagnoses`;
+
+  const userPrompt = `Here is the symptom and mood tracking data for the selected date range:\n\n${dataSummary}\n\nPlease analyse any patterns or trends you notice and share what might be most useful to know.`;
+
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 500,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+    const data = await res.json();
+    dotsDiv.remove();
+    triggerBtn.remove();
+
+    if (data.content && data.content[0] && data.content[0].text) {
+      const analysisText = data.content[0].text.trim();
+      const bodyDiv = document.createElement('div');
+      bodyDiv.className = 'insights-body';
+      // Render **bold** markdown
+      bodyDiv.innerHTML = analysisText
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n\n/g, '<br><br>');
+      container.appendChild(bodyDiv);
+
+      const meta = document.createElement('div');
+      meta.className = 'insights-meta';
+      meta.textContent = 'AI-generated observations — not medical advice. Always discuss with your doctor.';
+      container.appendChild(meta);
+    } else {
+      throw new Error(data.error?.message || 'Unexpected response');
+    }
+  } catch (e) {
+    dotsDiv.remove();
+    triggerBtn.disabled = false;
+    triggerBtn.textContent = '✦ Analyse patterns in this range';
+    const errDiv = document.createElement('div');
+    errDiv.style.cssText = 'font-size:0.82rem;color:var(--text-muted);margin-top:8px;';
+    errDiv.textContent = 'Could not load analysis — please try again.';
+    container.appendChild(errDiv);
+    setTimeout(() => errDiv.remove(), 4000);
   }
 }
 
