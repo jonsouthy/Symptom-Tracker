@@ -295,17 +295,189 @@
     width: 11px; height: 11px; border-radius: 3px;
   }
 
-  /* --- footer / calendar button --- */
+  /* --- footer / calendar + reports buttons --- */
   #cal-footer {
-    margin-top: 24px; text-align: center;
+    margin-top: 24px; text-align: center; display: flex; flex-direction: column; gap: 10px;
+    align-items: center;
   }
-  #cal-download {
+  #cal-download, #reports-btn {
     background: none; border: 1px dashed var(--sage-mid); color: var(--sage);
     padding: 11px 18px; border-radius: 12px; font-family: 'Outfit', sans-serif;
     font-size: 0.82rem; font-weight: 500; cursor: pointer;
     transition: all 0.15s ease; -webkit-appearance: none;
   }
-  #cal-download:active { background: var(--sage-pale); }
+  #cal-download:active, #reports-btn:active { background: var(--sage-pale); }
+
+  /* =====================================================================
+     REPORTS OVERLAY
+     ===================================================================== */
+  #reports-overlay {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: var(--cream); overflow-y: auto;
+    padding: 0 0 60px; -webkit-overflow-scrolling: touch;
+  }
+  #reports-overlay.open { display: block; }
+
+  #reports-topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--cream); border-bottom: 1px solid var(--border);
+    padding: 14px 16px 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #reports-topbar h2 {
+    font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--sage);
+    flex: 1;
+  }
+  #reports-pdf-btn {
+    background: var(--sage); color: white; border: none;
+    padding: 8px 14px; border-radius: 10px; font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem; font-weight: 500; cursor: pointer; -webkit-appearance: none;
+  }
+  #reports-pdf-btn:active { opacity: 0.85; }
+  #reports-close-btn {
+    background: none; border: 1.5px solid var(--border); color: var(--text-muted);
+    width: 32px; height: 32px; border-radius: 50%; font-size: 0.9rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    -webkit-appearance: none; flex-shrink: 0;
+  }
+  #reports-close-btn:active { background: var(--sage-pale); }
+
+  #reports-content {
+    max-width: 480px; margin: 0 auto; padding: 16px;
+  }
+
+  /* range presets */
+  #range-presets {
+    display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px;
+  }
+  .range-btn {
+    padding: 8px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+    background: var(--white); font-family: 'Outfit', sans-serif; font-size: 0.78rem;
+    font-weight: 500; color: var(--text-muted); cursor: pointer; -webkit-appearance: none;
+    transition: all 0.15s ease;
+  }
+  .range-btn.active {
+    border-color: var(--sage); background: var(--sage); color: white;
+  }
+  .range-btn:active { opacity: 0.8; }
+
+  /* report section cards */
+  .report-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
+  }
+  .report-card-title {
+    font-family: 'Playfair Display', serif; font-size: 0.95rem; color: var(--sage);
+    margin-bottom: 12px;
+  }
+
+  /* summary stats grid */
+  .summary-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .summary-stat {
+    background: var(--sage-pale); border-radius: 10px; padding: 10px 12px;
+  }
+  .summary-stat-label {
+    font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted); font-weight: 500; margin-bottom: 4px;
+  }
+  .summary-stat-value {
+    font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--sage);
+    line-height: 1.2;
+  }
+  .summary-stat-sub {
+    font-size: 0.7rem; color: var(--text-muted); font-family: 'Outfit', sans-serif;
+    margin-top: 2px;
+  }
+
+  /* per-symptom stacked bars */
+  .symptom-bar-row {
+    margin-bottom: 10px;
+  }
+  .symptom-bar-label {
+    font-size: 0.78rem; color: var(--text); margin-bottom: 5px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .symptom-bar-label .bar-worst {
+    font-size: 0.68rem; color: var(--text-muted);
+  }
+  .symptom-bar-track {
+    height: 10px; border-radius: 999px; background: var(--sage-pale);
+    overflow: hidden; display: flex;
+  }
+  .bar-seg {
+    height: 100%; transition: width 0.5s ease;
+  }
+  .bar-seg.seg-mild     { background: #c5e0bb; }
+  .bar-seg.seg-moderate { background: #93c47d; }
+  .bar-seg.seg-severe   { background: #6aa84f; }
+
+  /* report heatmap (same visual as main heatmap) */
+  .report-heatmap-year {
+    margin-bottom: 16px;
+  }
+  .report-month-label {
+    font-family: 'Outfit', sans-serif; font-size: 0.72rem; color: var(--text-muted);
+    font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .report-heat-weekdays {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 4px;
+  }
+  .report-heat-weekdays span {
+    text-align: center; font-size: 0.58rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .report-heat-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+  }
+  .report-heat-cell {
+    aspect-ratio: 1 / 1; border-radius: 4px; background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; color: var(--text-muted); font-weight: 500;
+  }
+  .report-heat-cell.rh-empty    { }
+  .report-heat-cell.rh-future   { opacity: 0.3; }
+  .report-heat-cell.rh-unlogged { background: #f1ece2; color: #b8a98a; }
+  .report-heat-cell.rh-none     { background: var(--sage-pale); color: var(--sage); }
+  .report-heat-cell.rh-mild     { background: #c5e0bb; color: #2d5a3a; }
+  .report-heat-cell.rh-moderate { background: #93c47d; color: #1a4028; }
+  .report-heat-cell.rh-severe   { background: #6aa84f; color: #ffffff; }
+
+  /* mood strip */
+  .mood-strip {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .mood-chip {
+    display: flex; align-items: center; gap: 5px;
+    background: var(--sage-pale); border-radius: 20px;
+    padding: 4px 10px 4px 8px; font-size: 0.72rem; color: var(--sage);
+  }
+  .mood-chip .mood-date { color: var(--text-muted); font-size: 0.65rem; }
+
+  /* loading state */
+  #reports-loading {
+    text-align: center; padding: 40px 16px;
+    font-size: 0.86rem; color: var(--text-muted);
+  }
+
+  /* =====================================================================
+     PRINT STYLESHEET — only the report content prints
+     ===================================================================== */
+  @media print {
+    body > *:not(#reports-overlay) { display: none !important; }
+    #reports-overlay { display: block !important; position: static !important;
+      overflow: visible !important; padding: 0 !important; }
+    #reports-topbar { position: static !important; border: none !important; }
+    #reports-close-btn, #reports-pdf-btn, #range-presets { display: none !important; }
+    #reports-content { max-width: 100% !important; padding: 0 !important; }
+    .report-card { break-inside: avoid; border: 1px solid #ccc; }
+    body { background: white !important; color: black !important; font-size: 11pt; }
+    .report-card-title { color: #2a5a3a !important; }
+    .summary-stat { background: #f4f4f4 !important; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
 </style>
 </head>
 <body>
@@ -373,6 +545,26 @@
 
   <div id="cal-footer">
     <button id="cal-download">Add daily reminder to calendar</button>
+    <button id="reports-btn">View reports</button>
+  </div>
+</div>
+
+<!-- ── Reports overlay ──────────────────────────────────────────────────── -->
+<div id="reports-overlay">
+  <div id="reports-topbar">
+    <h2>Reports</h2>
+    <button id="reports-pdf-btn" onclick="window.print()">Save as PDF</button>
+    <button id="reports-close-btn" aria-label="Close reports">✕</button>
+  </div>
+  <div id="reports-content">
+    <div id="range-presets">
+      <button class="range-btn active" data-range="month">This month</button>
+      <button class="range-btn" data-range="30">Last 30 days</button>
+      <button class="range-btn" data-range="90">Last 3 months</button>
+      <button class="range-btn" data-range="all">All time</button>
+    </div>
+    <div id="reports-loading" style="display:none">Loading your data…</div>
+    <div id="reports-body"></div>
   </div>
 </div>
 
@@ -1083,6 +1275,321 @@ function downloadIcs() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 document.getElementById('cal-download').onclick = downloadIcs;
+
+/* =========================================================================
+   REPORTS
+   ========================================================================= */
+
+// Symptom keys in display order for the bars
+const SYMPTOM_KEYS_ORDERED = [
+  'fatigue','pelvicPain','abdomenDiscomfort','constipation','backPain',
+  'nausea','migraine','nervePain','neckShoulderPain','insomnia','appetite'
+];
+const SYMPTOM_LABELS_SHORT = {
+  migraine: 'Migraine', nausea: 'Nausea', pelvicPain: 'Pelvic Pain',
+  backPain: 'Back Pain', constipation: 'Constipation', fatigue: 'Fatigue',
+  nervePain: 'Nerve Pain', insomnia: 'Insomnia', abdomenDiscomfort: 'Abdomen Discomfort',
+  neckShoulderPain: 'Neck & Shoulder', appetite: 'Appetite'
+};
+
+let activeRange = 'month'; // tracks the selected preset
+
+// Build the ISO date range for a given preset
+function rangeFromPreset(preset) {
+  const today = isoKey(jamaicaNow());
+  const { y, m } = jamaicaParts(jamaicaNow());
+  let from, to;
+  if (preset === 'month') {
+    from = isoKeyFromYMD(y, m, 1);
+    to   = today;
+  } else if (preset === '30') {
+    const d = jamaicaNow();
+    d.setDate(d.getDate() - 29);
+    from = isoKey(d);
+    to   = today;
+  } else if (preset === '90') {
+    const d = jamaicaNow();
+    d.setDate(d.getDate() - 89);
+    from = isoKey(d);
+    to   = today;
+  } else { // 'all' — go back as far as localStorage has data
+    const history = loadHistory();
+    const keys = Object.keys(history.logs || {});
+    from = keys.length > 0 ? keys.sort()[0] : isoKeyFromYMD(y, m, 1);
+    to   = today;
+  }
+  return { from, to };
+}
+
+// Fetch from worker and merge into localStorage
+async function fetchAndMerge(from, to) {
+  try {
+    const [sympRes, moodRes] = await Promise.all([
+      fetch(`${WORKER_URL}/sheets?tab=Symptoms&from=${from}&to=${to}`),
+      fetch(`${WORKER_URL}/sheets?tab=Mood&from=${from}&to=${to}`)
+    ]);
+    const sympData = await sympRes.json();
+    const moodData = await moodRes.json();
+
+    const history = loadHistory();
+    // Merge symptom data (worker fills in gaps not yet in localStorage)
+    if (sympData.success) {
+      for (const [iso, row] of Object.entries(sympData.data)) {
+        if (!history.logs[iso] && row.date) {
+          // Reconstruct a log entry from the worker row
+          const data = {};
+          for (const k of SYMPTOM_KEYS_ORDERED) {
+            if (row[k]) data[k] = row[k];
+          }
+          if (Object.keys(data).length > 0) {
+            history.logs[iso] = {
+              date: row.date, data, severity: worstSeverity(data),
+              savedAt: row.date, fromWorker: true
+            };
+          }
+        }
+      }
+    }
+    // Merge mood data
+    if (moodData.success) {
+      for (const [iso, row] of Object.entries(moodData.data)) {
+        if (row.mood && !history.moods[iso]) {
+          history.moods[iso] = {
+            date: row.date, mood: row.mood, note: row.note || ''
+          };
+        }
+      }
+    }
+    saveHistory(history);
+    return history;
+  } catch (e) {
+    // Worker unreachable — just use local cache
+    return loadHistory();
+  }
+}
+
+// Render the full report for the given range
+function renderReport(history, from, to) {
+  const body = document.getElementById('reports-body');
+  body.innerHTML = '';
+
+  // Collect all logged days in range
+  const days = [];
+  let cursor = from;
+  while (cursor <= to) {
+    days.push(cursor);
+    const [y, m, d] = cursor.split('-').map(Number);
+    const next = new Date(Date.UTC(y, m - 1, d + 1, 12));
+    cursor = isoKey(next);
+  }
+
+  const loggedDays = days.filter(iso => history.logs[iso]);
+  const total = days.filter(iso => iso <= isoKey(jamaicaNow())).length; // exclude future
+
+  // ── Summary stats ──────────────────────────────────────────────────────────
+  const summaryCard = document.createElement('div');
+  summaryCard.className = 'report-card';
+  summaryCard.innerHTML = '<div class="report-card-title">Summary</div>';
+  const grid = document.createElement('div');
+  grid.className = 'summary-grid';
+
+  // Days logged
+  grid.appendChild(statCell(loggedDays.length + ' / ' + total, 'Days logged',
+    Math.round((loggedDays.length / Math.max(total,1)) * 100) + '% of range'));
+
+  // Most common symptom
+  const symptomCounts = {};
+  for (const iso of loggedDays) {
+    const data = history.logs[iso].data;
+    for (const k of SYMPTOM_KEYS_ORDERED) {
+      if (data[k] && data[k] !== 'no' && data[k] !== 'Normal' && data[k] !== '') {
+        symptomCounts[k] = (symptomCounts[k] || 0) + 1;
+      }
+    }
+  }
+  const topSymptom = Object.entries(symptomCounts).sort((a,b) => b[1]-a[1])[0];
+  grid.appendChild(statCell(
+    topSymptom ? SYMPTOM_LABELS_SHORT[topSymptom[0]] : '—',
+    'Most common',
+    topSymptom ? topSymptom[1] + ' days' : 'no data'
+  ));
+
+  // Days with any symptom
+  const daysWithSymptom = loggedDays.filter(iso => history.logs[iso].severity !== 'none').length;
+  grid.appendChild(statCell(daysWithSymptom + '', 'Days with symptoms',
+    Math.round((daysWithSymptom / Math.max(loggedDays.length,1)) * 100) + '% of logged'));
+
+  // Mood logged count
+  const moodDays = days.filter(iso => history.moods && history.moods[iso]);
+  grid.appendChild(statCell(moodDays.length + '', 'Mood entries',
+    moodDays.length > 0 ? 'in range' : 'none yet'));
+
+  summaryCard.appendChild(grid);
+  body.appendChild(summaryCard);
+
+  // ── Per-symptom bars ───────────────────────────────────────────────────────
+  if (loggedDays.length > 0) {
+    const barsCard = document.createElement('div');
+    barsCard.className = 'report-card';
+    barsCard.innerHTML = '<div class="report-card-title">Symptom breakdown</div>';
+
+    for (const key of SYMPTOM_KEYS_ORDERED) {
+      let none = 0, mild = 0, moderate = 0, severe = 0;
+      for (const iso of loggedDays) {
+        const v = history.logs[iso].data[key] || '';
+        if (v === 'Severe')   severe++;
+        else if (v === 'Moderate' || v === 'Abnormal') moderate++;
+        else if (v === 'Mild') mild++;
+        else none++;
+      }
+      const total_d = loggedDays.length;
+      if (total_d === 0) continue;
+      const pctMild     = Math.round((mild     / total_d) * 100);
+      const pctModerate = Math.round((moderate / total_d) * 100);
+      const pctSevere   = Math.round((severe   / total_d) * 100);
+
+      const worstLabel = severe > 0 ? 'Severe' : moderate > 0 ? 'Moderate' : mild > 0 ? 'Mild' : 'None';
+
+      const row = document.createElement('div');
+      row.className = 'symptom-bar-row';
+      row.innerHTML =
+        `<div class="symptom-bar-label">
+           <span>${SYMPTOM_LABELS_SHORT[key]}</span>
+           <span class="bar-worst">${pctMild + pctModerate + pctSevere > 0 ? 'up to ' + worstLabel : 'None'}</span>
+         </div>
+         <div class="symptom-bar-track">
+           <div class="bar-seg seg-mild"     style="width:${pctMild}%"></div>
+           <div class="bar-seg seg-moderate" style="width:${pctModerate}%"></div>
+           <div class="bar-seg seg-severe"   style="width:${pctSevere}%"></div>
+         </div>`;
+      barsCard.appendChild(row);
+    }
+    body.appendChild(barsCard);
+  }
+
+  // ── Heatmap grid ───────────────────────────────────────────────────────────
+  const heatCard = document.createElement('div');
+  heatCard.className = 'report-card';
+  heatCard.innerHTML = '<div class="report-card-title">Day-by-day</div>';
+
+  // Group days by month for the multi-month view
+  const byMonth = {};
+  for (const iso of days) {
+    const [y, m] = iso.split('-');
+    const key = y + '-' + m;
+    if (!byMonth[key]) byMonth[key] = { y: +y, m: +m, days: [] };
+    byMonth[key].days.push(iso);
+  }
+
+  const todayIso = isoKey(jamaicaNow());
+  for (const [, { y, m, days: mdays }] of Object.entries(byMonth)) {
+    const monthDiv = document.createElement('div');
+    monthDiv.className = 'report-heatmap-year';
+    const label = document.createElement('div');
+    label.className = 'report-month-label';
+    label.textContent = MONTH_NAMES[m - 1] + ' ' + y;
+    monthDiv.appendChild(label);
+
+    const wdRow = document.createElement('div');
+    wdRow.className = 'report-heat-weekdays';
+    ['S','M','T','W','T','F','S'].forEach(d => {
+      const s = document.createElement('span'); s.textContent = d; wdRow.appendChild(s);
+    });
+    monthDiv.appendChild(wdRow);
+
+    const gridDiv = document.createElement('div');
+    gridDiv.className = 'report-heat-grid';
+
+    const firstOfMonth = new Date(Date.UTC(y, m - 1, 1, 12));
+    const offset = firstOfMonth.getUTCDay();
+    const totalDays = daysInMonth(y, m);
+
+    for (let i = 0; i < offset; i++) {
+      const c = document.createElement('div');
+      c.className = 'report-heat-cell rh-empty'; gridDiv.appendChild(c);
+    }
+    for (let d = 1; d <= totalDays; d++) {
+      const iso = isoKeyFromYMD(y, m, d);
+      const cell = document.createElement('div');
+      cell.className = 'report-heat-cell';
+      cell.textContent = d;
+      if (iso > todayIso) {
+        cell.classList.add('rh-future');
+      } else if (iso < from || iso > to) {
+        cell.classList.add('rh-empty'); cell.style.opacity = '0.2';
+      } else if (history.logs[iso]) {
+        const sev = history.logs[iso].severity || 'none';
+        cell.classList.add('rh-' + sev);
+      } else if (iso <= todayIso) {
+        cell.classList.add('rh-unlogged');
+      }
+      gridDiv.appendChild(cell);
+    }
+    monthDiv.appendChild(gridDiv);
+    heatCard.appendChild(monthDiv);
+  }
+  body.appendChild(heatCard);
+
+  // ── Mood overlay ───────────────────────────────────────────────────────────
+  if (moodDays.length > 0) {
+    const moodCard = document.createElement('div');
+    moodCard.className = 'report-card';
+    moodCard.innerHTML = '<div class="report-card-title">Mood</div>';
+    const strip = document.createElement('div');
+    strip.className = 'mood-strip';
+    for (const iso of moodDays) {
+      const entry = history.moods[iso];
+      const chip = document.createElement('div');
+      chip.className = 'mood-chip';
+      const dateLabel = iso.slice(5).replace('-', '/');
+      chip.innerHTML = `<span class="mood-date">${dateLabel}</span> ${entry.mood}`;
+      if (entry.note) chip.title = entry.note;
+      strip.appendChild(chip);
+    }
+    moodCard.appendChild(strip);
+    body.appendChild(moodCard);
+  }
+}
+
+function statCell(value, label, sub) {
+  const div = document.createElement('div');
+  div.className = 'summary-stat';
+  div.innerHTML =
+    `<div class="summary-stat-label">${label}</div>
+     <div class="summary-stat-value">${value}</div>
+     <div class="summary-stat-sub">${sub}</div>`;
+  return div;
+}
+
+// Open / close reports overlay
+async function openReports() {
+  const overlay = document.getElementById('reports-overlay');
+  overlay.classList.add('open');
+  window.scrollTo(0, 0);
+  await loadReportRange(activeRange);
+}
+
+async function loadReportRange(preset) {
+  activeRange = preset;
+  // Update active button
+  document.querySelectorAll('.range-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.range === preset);
+  });
+  document.getElementById('reports-body').innerHTML = '';
+  document.getElementById('reports-loading').style.display = 'block';
+  const { from, to } = rangeFromPreset(preset);
+  const history = await fetchAndMerge(from, to);
+  document.getElementById('reports-loading').style.display = 'none';
+  renderReport(history, from, to);
+}
+
+document.getElementById('reports-btn').onclick = openReports;
+document.getElementById('reports-close-btn').onclick = () => {
+  document.getElementById('reports-overlay').classList.remove('open');
+};
+document.querySelectorAll('.range-btn').forEach(btn => {
+  btn.onclick = () => loadReportRange(btn.dataset.range);
+});
 
 /* =========================================================================
    INIT
