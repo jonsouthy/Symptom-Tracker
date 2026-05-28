@@ -1233,10 +1233,13 @@ async function saveMoodToSheets() {
     });
     const result = await res.json();
     if (!result.success) {
-      console.warn('Mood tab save failed:', result.error);
+      // Surface the error so we can see exactly what's failing
+      saveStatus.className = 'error';
+      saveStatus.textContent = 'Mood saved locally — sheet write failed: ' + (result.error || 'unknown');
     }
   } catch (e) {
-    console.warn('Mood tab save error (saved locally):', e.message);
+    saveStatus.className = 'error';
+    saveStatus.textContent = 'Mood saved locally — could not reach sheet: ' + e.message;
   }
 }
 
@@ -1514,7 +1517,8 @@ function renderReport(history, from, to) {
     monthDiv.className = 'report-heatmap-year';
     const label = document.createElement('div');
     label.className = 'report-month-label';
-    label.textContent = MONTH_NAMES[m - 1] + ' ' + y;
+    label.textContent = new Date(Date.UTC(y, m - 1, 1, 12))
+      .toLocaleDateString('en-US', { month: 'long' }) + ' ' + y;
     monthDiv.appendChild(label);
 
     const wdRow = document.createElement('div');
