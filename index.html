@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Symptom Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sage: #4A6652;
+    --sage-light: #6a8f72;
+    --sage-pale: #e8f0ea;
+    --sage-mid: #c5d9c9;
+    --cream: #faf8f4;
+    --text: #2a2a2a;
+    --text-muted: #7a7a7a;
+    --white: #ffffff;
+    --border: #dde8df;
+    /* calm green severity gradient — no reds or amber anywhere */
+    --severe:      #6aa84f;
+    --severe-bg:   #daefd0;
+    --moderate:    #93c47d;
+    --moderate-bg: #e4f2dc;
+    --mild:        #c5e0bb;
+    --mild-bg:     #eef7ea;
+    --none-bg: #f4efe6;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px 80px;
+  }
+  header { text-align: center; margin-bottom: 14px; }
+  header h1 { font-family: 'Playfair Display', serif; font-size: 1.75rem; color: var(--sage); }
+  header p { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; font-weight: 300; }
+  #chat-wrap { width: 100%; max-width: 480px; display: flex; flex-direction: column; }
+
+  /* --- daily quote card --- */
+  #quote-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 18px 14px;
+    margin-bottom: 14px; text-align: center;
+  }
+  #quote-text {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: 0.9rem; color: var(--text); line-height: 1.65;
+    margin-bottom: 8px;
+  }
+  #quote-attr {
+    font-family: 'Outfit', sans-serif; font-size: 0.68rem;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted); font-weight: 500;
+  }
+
+  /* --- stats strip (streak + month progress) --- */
+  #stats-strip {
+    display: flex; gap: 10px; margin-bottom: 14px;
+  }
+  .stat-card {
+    flex: 1; background: var(--white); border: 1px solid var(--border);
+    border-radius: 14px; padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stat-label {
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted); font-weight: 500;
+  }
+  .stat-value {
+    font-family: 'Playfair Display', serif; font-size: 1.15rem;
+    color: var(--sage); display: flex; align-items: center; gap: 6px;
+  }
+  .stat-value .flame { font-size: 1.05rem; }
+  .month-bar {
+    height: 4px; background: var(--sage-pale); border-radius: 999px;
+    overflow: hidden; margin-top: 4px;
+  }
+  .month-bar-fill {
+    height: 100%; background: var(--sage); border-radius: 999px;
+    transition: width 0.5s ease; width: 0%;
+  }
+
+  /* --- missed-day banner --- */
+  #missed-banner {
+    display: none; background: var(--white); border: 1px solid var(--sage-mid);
+    border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
+    box-shadow: 0 2px 12px rgba(74,102,82,0.05);
+  }
+  #missed-banner p {
+    font-size: 0.86rem; color: var(--text); margin-bottom: 10px; line-height: 1.4;
+  }
+  #missed-banner .banner-actions { display: flex; gap: 8px; }
+  .mini-btn {
+    flex: 1; padding: 9px 8px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--white); font-family: 'Outfit', sans-serif; font-size: 0.82rem;
+    font-weight: 500; color: var(--text); cursor: pointer; transition: all 0.15s ease;
+    -webkit-appearance: none;
+  }
+  .mini-btn.primary { border-color: var(--sage); color: var(--sage); }
+  .mini-btn.primary:active { background: var(--sage-pale); }
+  .mini-btn.ghost { color: var(--text-muted); }
+  .mini-btn.ghost:active { background: #f0f0f0; }
+
+  /* --- question progress --- */
+  #q-progress-wrap {
+    width: 100%; background: var(--border); border-radius: 999px;
+    height: 4px; margin-bottom: 18px; overflow: hidden;
+  }
+  #q-progress {
+    height: 100%; background: var(--sage); border-radius: 999px;
+    transition: width 0.5s ease; width: 0%;
+  }
+
+  #messages { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .msg { display: flex; gap: 10px; align-items: flex-end; animation: fadeUp 0.22s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .msg.assistant { flex-direction: row; }
+  .msg.user      { flex-direction: row-reverse; }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--sage);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; color: white; flex-shrink: 0;
+    font-family: 'Playfair Display', serif; font-style: italic;
+  }
+  .bubble { max-width: 82%; padding: 10px 14px; border-radius: 16px; font-size: 0.9rem; line-height: 1.5; }
+  .msg.assistant .bubble { background: var(--white); border: 1px solid var(--border); border-bottom-left-radius: 4px; color: var(--text); }
+  .msg.user .bubble { background: var(--sage); color: white; border-bottom-right-radius: 4px; }
+  .bubble.typing span {
+    display: inline-block; width: 6px; height: 6px; background: var(--sage-mid);
+    border-radius: 50%; animation: blink 1.2s infinite; margin: 0 2px;
+  }
+  .bubble.typing span:nth-child(2) { animation-delay: 0.2s; }
+  .bubble.typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink {
+    0%,80%,100% { opacity:0.2; transform:scale(0.8); }
+    40%          { opacity:1;   transform:scale(1); }
+  }
+  #btn-area { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+  .btn-row { display: flex; gap: 8px; }
+  .choice-btn {
+    flex: 1; padding: 14px 8px; border-radius: 14px; border: 2px solid var(--border);
+    background: var(--white); font-family: 'Outfit', sans-serif; font-size: 0.9rem;
+    font-weight: 500; color: var(--text); cursor: pointer; transition: all 0.15s ease;
+    text-align: center; -webkit-appearance: none;
+  }
+  .choice-btn:active { transform: scale(0.95); }
+  .choice-btn.no       { border-color: #ccc; color: #888; }
+  .choice-btn.no:active { background: #f0f0f0; border-color: #aaa; }
+  .choice-btn.mild     { border-color: var(--mild); color: var(--sage); }
+  .choice-btn.mild:active { background: var(--mild-bg); }
+  .choice-btn.moderate { border-color: var(--moderate); color: var(--sage); }
+  .choice-btn.moderate:active { background: var(--moderate-bg); }
+  .choice-btn.severe   { border-color: var(--severe); color: var(--severe); }
+  .choice-btn.severe:active { background: var(--severe-bg); }
+  .choice-btn.normal   { border-color: var(--sage); color: var(--sage); }
+  .choice-btn.normal:active { background: var(--sage-pale); }
+  .choice-btn.abnormal { border-color: var(--moderate); color: var(--sage); }
+  .choice-btn.abnormal:active { background: var(--moderate-bg); }
+
+  /* mood buttons — 7-step scale matching the sheet (green gradient, no warm colours) */
+  .choice-btn.mood-numb        { border-color: var(--severe);   color: var(--severe); }
+  .choice-btn.mood-numb:active { background: var(--severe-bg); }
+  .choice-btn.mood-rock-bottom { border-color: var(--severe);   color: var(--severe); }
+  .choice-btn.mood-rock-bottom:active { background: var(--severe-bg); }
+  .choice-btn.mood-irritable   { border-color: var(--moderate); color: var(--sage); }
+  .choice-btn.mood-irritable:active { background: var(--moderate-bg); }
+  .choice-btn.mood-sad         { border-color: var(--moderate); color: var(--sage); }
+  .choice-btn.mood-sad:active  { background: var(--moderate-bg); }
+  .choice-btn.mood-anxious     { border-color: var(--sage-mid); color: var(--sage); }
+  .choice-btn.mood-anxious:active { background: var(--sage-pale); }
+  .choice-btn.mood-okay        { border-color: var(--mild); color: var(--sage); }
+  .choice-btn.mood-okay:active { background: var(--mild-bg); }
+  .choice-btn.mood-happy       { border-color: var(--sage); color: var(--sage); }
+  .choice-btn.mood-happy:active { background: var(--sage-pale); }
+
+  /* free-text note area */
+  .note-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .note-input {
+    width: 100%; padding: 12px 14px; border-radius: 14px;
+    border: 2px solid var(--border); background: var(--white);
+    font-family: 'Outfit', sans-serif; font-size: 0.9rem; color: var(--text);
+    resize: none; line-height: 1.5; -webkit-appearance: none;
+    outline: none;
+  }
+  .note-input:focus { border-color: var(--sage-mid); }
+  .note-submit {
+    align-self: flex-end; padding: 11px 22px; border-radius: 12px;
+    border: none; background: var(--sage); color: white;
+    font-family: 'Outfit', sans-serif; font-size: 0.88rem; font-weight: 500;
+    cursor: pointer; -webkit-appearance: none;
+  }
+  .note-submit:active { opacity: 0.85; }
+  .note-skip {
+    align-self: flex-end; padding: 11px 16px; border-radius: 12px;
+    border: 1.5px solid var(--border); background: var(--white); color: var(--text-muted);
+    font-family: 'Outfit', sans-serif; font-size: 0.88rem; font-weight: 500;
+    cursor: pointer; -webkit-appearance: none; margin-right: 8px;
+  }
+  .note-skip:active { background: #f0f0f0; }
+  .note-actions { display: flex; justify-content: flex-end; }
+
+  /* --- yesterday-mode banner --- */
+  #date-context {
+    display: none; background: var(--sage-pale); border: 1px solid var(--sage-mid);
+    color: var(--sage); border-radius: 10px; padding: 8px 12px;
+    font-size: 0.78rem; text-align: center; margin-bottom: 10px; font-weight: 500;
+  }
+
+  #summary-card {
+    display: none; background: var(--white); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 20px; margin-top: 10px;
+    box-shadow: 0 2px 16px rgba(74,102,82,0.07);
+  }
+  #summary-card h2 { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--sage); margin-bottom: 14px; }
+  .s-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid var(--sage-pale); font-size: 0.83rem;
+  }
+  .s-row:last-child { border-bottom: none; }
+  .s-name { color: var(--text-muted); }
+  .badge { padding: 3px 11px; border-radius: 20px; font-size: 0.74rem; font-weight: 600; }
+  .b-severe   { background: var(--severe-bg);   color: var(--severe); }
+  .b-moderate { background: var(--moderate-bg); color: var(--sage); }
+  .b-mild     { background: var(--mild-bg);     color: var(--sage); }
+  .b-normal   { background: var(--sage-pale);   color: var(--sage); }
+  .b-no       { background: #f0f0f0; color: #999; }
+  .b-mood     { background: var(--sage-pale); color: var(--sage); font-style: italic; }
+
+  #save-status {
+    display: none; margin-top: 12px; padding: 12px 16px; border-radius: 12px;
+    font-size: 0.82rem; text-align: center; font-weight: 500;
+  }
+  #save-status.saving { background: var(--sage-pale); border: 1px solid var(--sage-mid); color: var(--sage); }
+  #save-status.saved  { background: var(--mild-bg); border: 1px solid var(--mild); color: var(--sage); }
+  /* soft sage for errors — no reds ever */
+  #save-status.error  { background: var(--sage-pale); border: 1px dashed var(--sage-mid); color: var(--text-muted); }
+
+  /* --- heatmap --- */
+  #heatmap-section {
+    margin-top: 24px; background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 16px 18px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--sage);
+    margin-bottom: 12px; display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .section-title .sub {
+    font-family: 'Outfit', sans-serif; font-size: 0.74rem; color: var(--text-muted);
+    font-weight: 400; font-style: normal;
+  }
+  .heatmap-weekdays {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    margin-bottom: 6px;
+  }
+  .heatmap-weekdays span {
+    text-align: center; font-size: 0.62rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;
+  }
+  .heatmap-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+  }
+  .heat-cell {
+    aspect-ratio: 1 / 1; border-radius: 6px; background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.66rem; color: var(--text-muted); font-weight: 500;
+    border: 1px solid transparent;
+  }
+  .heat-cell.empty { background: transparent; }
+  .heat-cell.unlogged { background: #f1ece2; color: #b8a98a; }
+  .heat-cell.future { background: transparent; color: #c8c2b3; opacity: 0.6; }
+  .heat-cell.today { box-shadow: 0 0 0 2px var(--sage) inset; }
+  /* calm green gradient — consistent with severity scale */
+  .heat-cell.sev-none     { background: var(--sage-pale); color: var(--sage); }
+  .heat-cell.sev-mild     { background: #c5e0bb;          color: #2d5a3a; }
+  .heat-cell.sev-moderate { background: #93c47d;          color: #1a4028; }
+  .heat-cell.sev-severe   { background: #6aa84f;          color: #ffffff; }
+  .heatmap-legend {
+    display: flex; gap: 10px; margin-top: 12px; justify-content: center;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.68rem; color: var(--text-muted);
+  }
+  .legend-swatch {
+    width: 11px; height: 11px; border-radius: 3px;
+  }
+
+  /* --- footer / calendar button --- */
+  #cal-footer {
+    margin-top: 24px; text-align: center;
+  }
+  #cal-download {
+    background: none; border: 1px dashed var(--sage-mid); color: var(--sage);
+    padding: 11px 18px; border-radius: 12px; font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem; font-weight: 500; cursor: pointer;
+    transition: all 0.15s ease; -webkit-appearance: none;
+  }
+  #cal-download:active { background: var(--sage-pale); }
+</style>
+</head>
+<body>
+<header>
+  <h1>How are you feeling?</h1>
+  <p id="today-date"></p>
+  <p id="jons-message">"You're doing great sweetie -Jon"</p>
+</header>
+<div id="chat-wrap">
+
+  <!-- daily quote card -->
+  <div id="quote-card">
+    <p id="quote-text"></p>
+    <p id="quote-attr"></p>
+  </div>
+
+  <div id="stats-strip">
+    <div class="stat-card">
+      <div class="stat-label">Streak</div>
+      <div class="stat-value"><span class="flame">🔥</span><span id="streak-num">0</span><span style="font-size:0.78rem;color:var(--text-muted);font-family:'Outfit',sans-serif;margin-left:4px;" id="streak-suffix">days</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">This month</div>
+      <div class="stat-value"><span id="month-num">0</span><span style="font-size:0.78rem;color:var(--text-muted);font-family:'Outfit',sans-serif;margin-left:4px;" id="month-suffix">/ 0 days</span></div>
+      <div class="month-bar"><div class="month-bar-fill" id="month-bar-fill"></div></div>
+    </div>
+  </div>
+
+  <div id="missed-banner">
+    <p id="missed-banner-text">Did you forget to log yesterday?</p>
+    <div class="banner-actions">
+      <button class="mini-btn primary" id="missed-yes">Yes, log it now</button>
+      <button class="mini-btn ghost" id="missed-no">Skip</button>
+    </div>
+  </div>
+
+  <div id="date-context"></div>
+  <div id="q-progress-wrap"><div id="q-progress"></div></div>
+  <div id="messages"></div>
+  <div id="btn-area"></div>
+
+  <div id="summary-card">
+    <h2>Today's Summary</h2>
+    <div id="summary-rows"></div>
+  </div>
+  <div id="save-status"></div>
+
+  <div id="heatmap-section">
+    <div class="section-title">
+      <span id="heatmap-month-label">This month</span>
+      <span class="sub" id="heatmap-sub"></span>
+    </div>
+    <div class="heatmap-weekdays">
+      <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+    </div>
+    <div class="heatmap-grid" id="heatmap-grid"></div>
+    <div class="heatmap-legend">
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--sage-pale)"></span>Symptom-free</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:#c5e0bb"></span>Mild</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:#93c47d"></span>Moderate</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:#6aa84f"></span>Severe</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:#f1ece2"></span>Not logged</div>
+    </div>
+  </div>
+
+  <div id="cal-footer">
+    <button id="cal-download">Add daily reminder to calendar</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   CONFIG
+   ========================================================================= */
+const WORKER_URL = 'https://symptom-proxy.jsouthphotos.workers.dev';
+const TRACKER_URL = 'https://jonsouthy.github.io/Symptom-Tracker/';
+const REMINDER_HOUR = 20;   // 8pm Jamaica
+const REMINDER_MIN  = 0;
+const STORAGE_KEY = 'symptomTracker_v1';
+
+/* =========================================================================
+   DAILY QUOTES (curated — extends to ~80+ days before any repeat)
+   Deterministic daily pick: hash ISO date → modulo array length
+   ========================================================================= */
+const QUOTES = [
+  { q: "Fashion fades, only style remains the same.", a: "Coco Chanel" },
+  { q: "Style is a way to say who you are without having to speak.", a: "Rachel Zoe" },
+  { q: "Elegance is the only beauty that never fades.", a: "Audrey Hepburn" },
+  { q: "I don't design clothes. I design dreams.", a: "Ralph Lauren" },
+  { q: "Dressing well is a form of good manners.", a: "Tom Ford" },
+  { q: "Fashion is about dressing according to what's fashionable. Style is more about being yourself.", a: "Oscar de la Renta" },
+  { q: "More is more and less is a bore.", a: "Iris Apfel" },
+  { q: "The dress must follow the body of a woman, not the body following the shape of the dress.", a: "Hubert de Givenchy" },
+  { q: "I want to make clothes that don't exist yet — clothes that emerge from a feeling.", a: "Iris van Herpen" },
+  { q: "Clothes mean nothing until someone lives in them.", a: "Marc Jacobs" },
+  { q: "Fashion is the armor to survive the reality of everyday life.", a: "Bill Cunningham" },
+  { q: "You can never be overdressed or overeducated.", a: "Oscar Wilde" },
+  { q: "Simplicity is the keynote of all true elegance.", a: "Coco Chanel" },
+  { q: "Walk like you have three men walking behind you.", a: "Oscar de la Renta" },
+  { q: "Give a girl the right shoes and she can conquer the world.", a: "Marilyn Monroe" },
+  { q: "I don't do fashion. I am fashion.", a: "Coco Chanel" },
+  { q: "Style is knowing who you are, what you want to say, and not giving a damn.", a: "Gore Vidal" },
+  { q: "Fashion is what you're offered four times a year by designers. Style is what you choose.", a: "Lauren Hutton" },
+  { q: "The joy of dressing is an art.", a: "John Galliano" },
+  { q: "Beauty begins the moment you decide to be yourself.", a: "Coco Chanel" },
+  { q: "Anyone can get dressed up and glamorous, but it is how people dress in their days off that are the most intriguing.", a: "Alexander Wang" },
+  { q: "What you wear is how you present yourself to the world. Fashion is instant language.", a: "Miuccia Prada" },
+  { q: "Fashions fade, style is eternal.", a: "Yves Saint Laurent" },
+  { q: "I think there is beauty in everything.", a: "Alexander McQueen" },
+  { q: "Fashion is part of the daily air and it changes all the time, with all the events.", a: "Diana Vreeland" },
+  { q: "The most courageous act is still to think for yourself. Aloud.", a: "Coco Chanel" },
+  { q: "Trendy is the last stage before tacky.", a: "Karl Lagerfeld" },
+  { q: "I never wanted to be in fashion. I wanted to create fashion.", a: "Donna Karan" },
+  { q: "A woman who wears a smile is always in style.", a: "Anonymous" },
+  { q: "Style is the perfection of a point of view.", a: "Richard Eberhart" },
+  { q: "Luxury is in each detail.", a: "Hubert de Givenchy" },
+  { q: "The best colour in the whole world is the one that looks good on you.", a: "Coco Chanel" },
+  { q: "Dress like you're going somewhere better later.", a: "Lilly Pulitzer" },
+  { q: "Fashion is not something that exists in dresses only. Fashion is in the sky, in the street.", a: "Coco Chanel" },
+  { q: "I have always believed that fashion was not only to make women more beautiful, but also to reassure them.", a: "Yves Saint Laurent" },
+  { q: "Clothes are never a frivolity: they always mean something.", a: "James Laver" },
+  { q: "Nothing makes a woman more beautiful than the belief that she is beautiful.", a: "Sophia Loren" },
+  { q: "Life is too short to wear boring clothes.", a: "Anonymous" },
+  { q: "A woman's best accessory is her confidence.", a: "Anonymous" },
+  { q: "Buy less, choose well, make it last.", a: "Vivienne Westwood" },
+];
+
+function dailyQuote() {
+  const today = isoKey(jamaicaNow());
+  let hash = 0;
+  for (const ch of today) hash = ((hash * 31) + ch.charCodeAt(0)) | 0;
+  return QUOTES[Math.abs(hash) % QUOTES.length];
+}
+
+function renderQuote() {
+  const { q, a } = dailyQuote();
+  document.getElementById('quote-text').textContent = '“' + q + '”';
+  document.getElementById('quote-attr').textContent = '— ' + a;
+}
+
+/* =========================================================================
+   DATE HELPERS (Jamaica timezone, no DST)
+   ========================================================================= */
+function jamaicaNow() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Jamaica' }));
+}
+function jamaicaParts(d) {
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Jamaica', year: 'numeric', month: '2-digit', day: '2-digit'
+  });
+  const parts = Object.fromEntries(fmt.formatToParts(d).map(p => [p.type, p.value]));
+  return { y: +parts.year, m: +parts.month, d: +parts.day };
+}
+function isoKey(d) {
+  const { y, m, d: day } = jamaicaParts(d);
+  return `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+function isoKeyFromYMD(y, m, day) {
+  return `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+function prettyDate(d) {
+  return d.toLocaleDateString('en-GB', {
+    timeZone: 'America/Jamaica', day: 'numeric', month: 'long', year: 'numeric'
+  });
+}
+function prettyDateFromIso(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d, 12));
+  return prettyDate(dt);
+}
+function daysInMonth(y, m) {
+  return new Date(y, m, 0).getDate();
+}
+
+/* =========================================================================
+   LOCAL HISTORY (the data backbone)
+   ========================================================================= */
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { logs: {}, dismissed: {}, moods: {} };
+    const parsed = JSON.parse(raw);
+    return {
+      logs: parsed.logs || {},
+      dismissed: parsed.dismissed || {},
+      moods: parsed.moods || {}
+    };
+  } catch (e) {
+    return { logs: {}, dismissed: {}, moods: {} };
+  }
+}
+function saveHistory(history) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  } catch (e) { /* private mode — silently fail */ }
+}
+function worstSeverity(data) {
+  let worst = 'none';
+  const rank = { none: 0, mild: 1, moderate: 2, severe: 3 };
+  for (const [k, v] of Object.entries(data)) {
+    let s = 'none';
+    if (v === 'Severe') s = 'severe';
+    else if (v === 'Moderate') s = 'moderate';
+    else if (v === 'Mild') s = 'mild';
+    else if (v === 'Abnormal') s = 'moderate';
+    if (rank[s] > rank[worst]) worst = s;
+  }
+  return worst;
+}
+function recordLog(iso, prettyDateStr, data) {
+  const history = loadHistory();
+  history.logs[iso] = {
+    date: prettyDateStr,
+    data: data,
+    severity: worstSeverity(data),
+    savedAt: new Date().toISOString()
+  };
+  saveHistory(history);
+}
+function recordMood(iso, prettyDateStr, mood, note) {
+  const history = loadHistory();
+  history.moods[iso] = {
+    date: prettyDateStr,
+    mood: mood,
+    note: note || '',
+    savedAt: new Date().toISOString()
+  };
+  saveHistory(history);
+}
+function computeStreak() {
+  const history = loadHistory();
+  const logs = history.logs;
+  let streak = 0;
+  const today = jamaicaNow();
+  let cursor = new Date(today);
+  if (!logs[isoKey(cursor)]) {
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  while (logs[isoKey(cursor)]) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+function computeMonthProgress() {
+  const history = loadHistory();
+  const today = jamaicaNow();
+  const { y, m, d } = jamaicaParts(today);
+  let logged = 0;
+  for (let day = 1; day <= d; day++) {
+    if (history.logs[isoKeyFromYMD(y, m, day)]) logged++;
+  }
+  return { logged, elapsed: d, totalInMonth: daysInMonth(y, m) };
+}
+
+/* =========================================================================
+   APP STATE
+   ========================================================================= */
+const SYMPTOMS = [
+  { key: 'migraine',          label: 'Migraine',             type: 'severity' },
+  { key: 'fatigue',           label: 'Fatigue',              type: 'severity' },
+  { key: 'pelvicPain',        label: 'Pelvic Pain',          type: 'severity' },
+  { key: 'backPain',          label: 'Back Pain',            type: 'severity' },
+  { key: 'nausea',            label: 'Nausea',               type: 'severity' },
+  { key: 'nervePain',         label: 'Nerve Pain',           type: 'severity' },
+  { key: 'abdomenDiscomfort', label: 'Abdomen Discomfort',   type: 'severity' },
+  { key: 'neckShoulderPain',  label: 'Neck & Shoulder Pain', type: 'severity' },
+  { key: 'constipation',      label: 'Constipation',         type: 'severity' },
+  { key: 'insomnia',          label: 'Insomnia',             type: 'severity' },
+  { key: 'appetite',          label: 'Appetite',             type: 'appetite' },
+];
+const QUESTIONS = {
+  migraine:          "Any headaches or migraines today?",
+  fatigue:           "How are your energy levels? Feeling fatigued?",
+  pelvicPain:        "Any pelvic pain or discomfort?",
+  backPain:          "How's your back feeling?",
+  nausea:            "Any nausea today?",
+  nervePain:         "Any nerve pain?",
+  abdomenDiscomfort: "Any abdominal discomfort?",
+  neckShoulderPain:  "Any neck or shoulder tension?",
+  constipation:      "Any constipation?",
+  insomnia:          "How did you sleep last night?",
+  appetite:          "How's your appetite today?",
+};
+const QUESTIONS_Y = {
+  migraine:          "Any headaches or migraines yesterday?",
+  fatigue:           "How were your energy levels yesterday?",
+  pelvicPain:        "Any pelvic pain or discomfort yesterday?",
+  backPain:          "How was your back yesterday?",
+  nausea:            "Any nausea yesterday?",
+  nervePain:         "Any nerve pain yesterday?",
+  abdomenDiscomfort: "Any abdominal discomfort yesterday?",
+  neckShoulderPain:  "Any neck or shoulder tension yesterday?",
+  constipation:      "Any constipation yesterday?",
+  insomnia:          "How did you sleep the night before last?",
+  appetite:          "How was your appetite yesterday?",
+};
+const LABELS = {
+  migraine: 'Migraine', nausea: 'Nausea', pelvicPain: 'Pelvic Pain',
+  backPain: 'Back Pain', constipation: 'Constipation', fatigue: 'Fatigue',
+  nervePain: 'Nerve Pain', insomnia: 'Insomnia', abdomenDiscomfort: 'Abdomen Discomfort',
+  neckShoulderPain: 'Neck & Shoulder Pain', appetite: 'Appetite'
+};
+
+// Mood scale — 7 steps matching the Google Sheet dropdown (col B = Description)
+const MOOD_OPTS = [
+  { label: 'Numb',        cls: 'mood-numb',        value: 'Numb'        },
+  { label: 'Rock Bottom', cls: 'mood-rock-bottom',  value: 'Rock Bottom' },
+  { label: 'Irritable',   cls: 'mood-irritable',    value: 'Irritable'   },
+  { label: 'Sad',         cls: 'mood-sad',          value: 'Sad'         },
+  { label: 'Anxious',     cls: 'mood-anxious',      value: 'Anxious'     },
+  { label: 'Okay',        cls: 'mood-okay',         value: 'Okay'        },
+  { label: 'Happy',       cls: 'mood-happy',        value: 'Happy'       },
+];
+
+// session state
+let collected = {};
+let currentIdx = 0;
+let busy = false;
+let targetDate = jamaicaNow();
+let targetIso = isoKey(targetDate);
+let targetPretty = prettyDate(targetDate);
+let isYesterdayMode = false;
+// mood flow state
+let moodPhase = false;    // true when we're in the mood sub-flow
+let collectedMood = '';
+let collectedNote = '';
+
+document.getElementById('today-date').textContent = targetPretty;
+
+/* =========================================================================
+   DOM REFS
+   ========================================================================= */
+const messagesEl   = document.getElementById('messages');
+const btnArea      = document.getElementById('btn-area');
+const qProgress    = document.getElementById('q-progress');
+const saveStatus   = document.getElementById('save-status');
+const missedBanner = document.getElementById('missed-banner');
+const dateContext  = document.getElementById('date-context');
+
+/* =========================================================================
+   STATS STRIP RENDERING
+   ========================================================================= */
+function renderStats() {
+  const streak = computeStreak();
+  const mp = computeMonthProgress();
+  document.getElementById('streak-num').textContent = streak;
+  document.getElementById('streak-suffix').textContent = streak === 1 ? 'day' : 'days';
+  document.getElementById('month-num').textContent = mp.logged;
+  document.getElementById('month-suffix').textContent = '/ ' + mp.elapsed + ' days';
+  const pct = mp.elapsed > 0 ? Math.round((mp.logged / mp.elapsed) * 100) : 0;
+  document.getElementById('month-bar-fill').style.width = pct + '%';
+}
+
+/* =========================================================================
+   HEATMAP
+   ========================================================================= */
+function renderHeatmap() {
+  const history = loadHistory();
+  const today = jamaicaNow();
+  const { y, m, d: todayDay } = jamaicaParts(today);
+  const total = daysInMonth(y, m);
+  const monthName = today.toLocaleDateString('en-US', { timeZone:'America/Jamaica', month: 'long' });
+  document.getElementById('heatmap-month-label').textContent = monthName + ' ' + y;
+
+  const firstOfMonth = new Date(Date.UTC(y, m - 1, 1, 12));
+  const firstWeekday = firstOfMonth.getUTCDay();
+
+  const grid = document.getElementById('heatmap-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < firstWeekday; i++) {
+    const c = document.createElement('div');
+    c.className = 'heat-cell empty';
+    grid.appendChild(c);
+  }
+  let loggedCount = 0;
+  for (let day = 1; day <= total; day++) {
+    const iso = isoKeyFromYMD(y, m, day);
+    const cell = document.createElement('div');
+    cell.className = 'heat-cell';
+    cell.textContent = day;
+    cell.title = prettyDateFromIso(iso);
+    if (day > todayDay) {
+      cell.classList.add('future');
+    } else if (history.logs[iso]) {
+      loggedCount++;
+      const sev = history.logs[iso].severity || 'none';
+      cell.classList.add('sev-' + sev);
+      const sevLabel = sev === 'none' ? 'symptom-free' : sev;
+      cell.title += ' — ' + sevLabel;
+    } else {
+      cell.classList.add('unlogged');
+    }
+    if (day === todayDay) cell.classList.add('today');
+    grid.appendChild(cell);
+  }
+  document.getElementById('heatmap-sub').textContent =
+    loggedCount + ' / ' + todayDay + ' logged';
+}
+
+/* =========================================================================
+   MISSED-DAY PROMPT
+   ========================================================================= */
+function maybeShowMissedDay() {
+  const history = loadHistory();
+  const yesterday = new Date(jamaicaNow());
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yIso = isoKey(yesterday);
+  const todayIso = isoKey(jamaicaNow());
+
+  if (history.logs[yIso]) return;
+  if (history.dismissed[todayIso] === yIso) return;
+  if (Object.keys(history.logs).length === 0) return;
+
+  document.getElementById('missed-banner-text').textContent =
+    "Looks like yesterday (" + prettyDateFromIso(yIso) + ") isn't logged yet. Want to log it now?";
+  missedBanner.style.display = 'block';
+
+  document.getElementById('missed-yes').onclick = () => {
+    missedBanner.style.display = 'none';
+    startYesterdayFlow(yesterday);
+  };
+  document.getElementById('missed-no').onclick = () => {
+    history.dismissed[todayIso] = yIso;
+    saveHistory(history);
+    missedBanner.style.display = 'none';
+  };
+}
+function startYesterdayFlow(yesterdayDate) {
+  targetDate = yesterdayDate;
+  targetIso = isoKey(targetDate);
+  targetPretty = prettyDate(targetDate);
+  isYesterdayMode = true;
+  collected = {};
+  currentIdx = 0;
+  moodPhase = false;
+  collectedMood = '';
+  collectedNote = '';
+  messagesEl.innerHTML = '';
+  btnArea.innerHTML = '';
+  document.getElementById('summary-card').style.display = 'none';
+  saveStatus.style.display = 'none';
+  setProgress(0);
+  dateContext.style.display = 'block';
+  dateContext.textContent = "Logging for yesterday — " + targetPretty;
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    addMsg('assistant', "Let's catch up on yesterday. Tap how each one felt.");
+    setTimeout(() => askNext(), 450);
+  }, 600);
+}
+
+/* =========================================================================
+   CHAT FLOW
+   ========================================================================= */
+function setProgress(idx) {
+  // progress bar covers symptoms + 2 mood steps (mood pick + note)
+  const total = SYMPTOMS.length + 2;
+  qProgress.style.width = Math.round((idx / total) * 100) + '%';
+}
+function scrollBottom() {
+  setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
+}
+function addMsg(role, text) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  d.innerHTML = role === 'assistant'
+    ? '<div class="avatar">S</div><div class="bubble">' + text + '</div>'
+    : '<div class="bubble">' + text + '</div>';
+  messagesEl.appendChild(d);
+  scrollBottom();
+}
+function showTyping() {
+  const d = document.createElement('div');
+  d.className = 'msg assistant'; d.id = 'typing';
+  d.innerHTML = '<div class="avatar">S</div><div class="bubble typing"><span></span><span></span><span></span></div>';
+  messagesEl.appendChild(d);
+  scrollBottom();
+}
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+function clearBtns() { btnArea.innerHTML = ''; }
+
+function showButtons(symptomKey) {
+  clearBtns();
+  const row = document.createElement('div');
+  row.className = 'btn-row';
+  const opts = symptomKey === 'appetite'
+    ? [{ l: 'Normal', c: 'normal', v: 'Normal' }, { l: 'Abnormal', c: 'abnormal', v: 'Abnormal' }]
+    : [
+        { l: 'No',       c: 'no',       v: 'no' },
+        { l: 'Mild',     c: 'mild',     v: 'Mild' },
+        { l: 'Moderate', c: 'moderate', v: 'Moderate' },
+        { l: 'Severe',   c: 'severe',   v: 'Severe' },
+      ];
+  opts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn ' + opt.c;
+    btn.textContent = opt.l;
+    btn.onclick = () => pick(symptomKey, opt.v, opt.l);
+    row.appendChild(btn);
+  });
+  btnArea.appendChild(row);
+  scrollBottom();
+}
+
+function showMoodButtons() {
+  clearBtns();
+  // Three rows: 2 / 3 / 2 — groups naturally from hardest to brightest
+  const row1 = document.createElement('div'); row1.className = 'btn-row';
+  const row2 = document.createElement('div'); row2.className = 'btn-row';
+  const row3 = document.createElement('div'); row3.className = 'btn-row';
+  const rows = [row1, row1, row2, row2, row2, row3, row3]; // 0,1 → r1; 2,3,4 → r2; 5,6 → r3
+  MOOD_OPTS.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn ' + opt.cls;
+    btn.textContent = opt.label;
+    btn.onclick = () => pickMood(opt.value);
+    rows[i].appendChild(btn);
+  });
+  btnArea.appendChild(row1);
+  btnArea.appendChild(row2);
+  btnArea.appendChild(row3);
+  scrollBottom();
+}
+
+function showNoteInput() {
+  clearBtns();
+  const wrap = document.createElement('div');
+  wrap.className = 'note-wrap';
+  const textarea = document.createElement('textarea');
+  textarea.className = 'note-input';
+  textarea.rows = 3;
+  textarea.placeholder = "Anything on your mind? (optional)";
+  wrap.appendChild(textarea);
+  const actions = document.createElement('div');
+  actions.className = 'note-actions';
+  const skipBtn = document.createElement('button');
+  skipBtn.className = 'note-skip';
+  skipBtn.textContent = 'Skip';
+  skipBtn.onclick = () => finishMood('');
+  const submitBtn = document.createElement('button');
+  submitBtn.className = 'note-submit';
+  submitBtn.textContent = 'Done';
+  submitBtn.onclick = () => finishMood(textarea.value.trim());
+  actions.appendChild(skipBtn);
+  actions.appendChild(submitBtn);
+  wrap.appendChild(actions);
+  btnArea.appendChild(wrap);
+  scrollBottom();
+}
+
+function pick(key, value, label) {
+  if (busy) return;
+  busy = true;
+  collected[key] = value;
+  addMsg('user', label);
+  clearBtns();
+  currentIdx++;
+  setProgress(currentIdx);
+  setTimeout(() => {
+    if (currentIdx < SYMPTOMS.length) {
+      askNext();
+    } else {
+      // symptoms done — transition to mood
+      startMoodFlow();
+    }
+    busy = false;
+  }, 350);
+}
+
+function askNext() {
+  const s = SYMPTOMS[currentIdx];
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    const q = isYesterdayMode ? QUESTIONS_Y[s.key] : QUESTIONS[s.key];
+    addMsg('assistant', q);
+    showButtons(s.key);
+  }, 550);
+}
+
+/* =========================================================================
+   MOOD SUB-FLOW (runs after all 11 symptoms)
+   ========================================================================= */
+function startMoodFlow() {
+  moodPhase = true;
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    const dayWord = isYesterdayMode ? "yesterday" : "today";
+    addMsg('assistant', "One more — how would you describe your mood " + dayWord + "?");
+    showMoodButtons();
+  }, 650);
+}
+
+function pickMood(value) {
+  collectedMood = value;
+  addMsg('user', value);
+  clearBtns();
+  setProgress(SYMPTOMS.length + 1);
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    addMsg('assistant', "Anything on your mind you'd like to note?");
+    showNoteInput();
+  }, 500);
+}
+
+async function finishMood(note) {
+  collectedNote = note;
+  if (note) addMsg('user', note);
+  clearBtns();
+  setProgress(SYMPTOMS.length + 2);
+  showTyping();
+  setTimeout(async () => {
+    removeTyping();
+    const issues = Object.entries(collected).filter(([k,v]) => v !== 'no' && v !== 'Normal');
+    const dayWord = isYesterdayMode ? "yesterday" : "today";
+    const msg = issues.length === 0
+      ? "Sounds like " + (isYesterdayMode ? "yesterday was a good day" : "a good day") + "! All logged. 🌿"
+      : "Got it — I've noted " + issues.map(([k]) => LABELS[k]).join(', ') + ". Take care of yourself " + dayWord + ". 💚";
+    addMsg('assistant', msg);
+    showSummary();
+    await saveToSheets();
+    await saveMoodToSheets();
+  }, 650);
+}
+
+/* =========================================================================
+   SUMMARY CARD
+   ========================================================================= */
+function showSummary() {
+  const card = document.getElementById('summary-card');
+  const rows = document.getElementById('summary-rows');
+  rows.innerHTML = '';
+  for (const [key, val] of Object.entries(collected)) {
+    const row = document.createElement('div');
+    row.className = 's-row';
+    const bc = val === 'Severe' ? 'b-severe' : val === 'Moderate' ? 'b-moderate'
+             : val === 'Mild' ? 'b-mild' : val === 'Normal' ? 'b-normal' : 'b-no';
+    row.innerHTML = '<span class="s-name">' + LABELS[key] + '</span><span class="badge ' + bc + '">' + val + '</span>';
+    rows.appendChild(row);
+  }
+  // mood row
+  if (collectedMood) {
+    const moodRow = document.createElement('div');
+    moodRow.className = 's-row';
+    moodRow.innerHTML = '<span class="s-name">Mood</span><span class="badge b-mood">' + collectedMood + '</span>';
+    rows.appendChild(moodRow);
+  }
+  card.style.display = 'block';
+  scrollBottom();
+}
+
+/* =========================================================================
+   SAVE TO SHEETS
+   ========================================================================= */
+async function saveToSheets() {
+  saveStatus.style.display = 'block';
+  saveStatus.className = 'saving';
+  saveStatus.textContent = 'Saving to your sheet...';
+  scrollBottom();
+  try {
+    const res = await fetch(WORKER_URL + '/sheets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: targetPretty, data: collected }),
+    });
+    const result = await res.json();
+    if (result.success) {
+      recordLog(targetIso, targetPretty, collected);
+      renderStats();
+      renderHeatmap();
+      saveStatus.className = 'saved';
+      saveStatus.textContent = 'Saved to your sheet!';
+    } else {
+      throw new Error(result.error || 'Unknown error');
+    }
+  } catch (e) {
+    recordLog(targetIso, targetPretty, collected);
+    renderStats();
+    renderHeatmap();
+    saveStatus.className = 'error';
+    saveStatus.textContent = 'Saved locally — could not reach sheet: ' + e.message;
+  }
+  scrollBottom();
+}
+
+async function saveMoodToSheets() {
+  if (!collectedMood) return;
+  // Save locally first regardless of network
+  recordMood(targetIso, targetPretty, collectedMood, collectedNote);
+  try {
+    const res = await fetch(WORKER_URL + '/sheets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tab: 'Mood',
+        date: targetPretty,
+        data: { mood: collectedMood, note: collectedNote }
+      }),
+    });
+    const result = await res.json();
+    if (!result.success) {
+      console.warn('Mood tab save failed:', result.error);
+    }
+  } catch (e) {
+    console.warn('Mood tab save error (saved locally):', e.message);
+  }
+}
+
+/* =========================================================================
+   .ICS DOWNLOAD
+   ========================================================================= */
+function pad(n) { return String(n).padStart(2, '0'); }
+function buildIcs() {
+  const now = jamaicaNow();
+  const start = new Date(now);
+  start.setDate(start.getDate() + 1);
+  const y = start.getFullYear();
+  const m = pad(start.getMonth() + 1);
+  const d = pad(start.getDate());
+  const dtStart = `${y}${m}${d}T${pad(REMINDER_HOUR)}${pad(REMINDER_MIN)}00`;
+  const dtEnd   = `${y}${m}${d}T${pad(REMINDER_HOUR)}${pad(REMINDER_MIN + 15 < 60 ? REMINDER_MIN + 15 : 59)}00`;
+  const stampUtc = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  const uid = 'endo-tracker-daily-' + Date.now() + '@jonsouthy.github.io';
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Endo Tracker//Daily Reminder//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VTIMEZONE',
+    'TZID:America/Jamaica',
+    'BEGIN:STANDARD',
+    'DTSTART:19700101T000000',
+    'TZOFFSETFROM:-0500',
+    'TZOFFSETTO:-0500',
+    'TZNAME:EST',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',
+    'UID:' + uid,
+    'DTSTAMP:' + stampUtc,
+    'DTSTART;TZID=America/Jamaica:' + dtStart,
+    'DTEND;TZID=America/Jamaica:' + dtEnd,
+    'RRULE:FREQ=DAILY',
+    'SUMMARY:Log today\'s symptoms 🌿',
+    'DESCRIPTION:Quick check-in for the symptom tracker.\\n\\n' + TRACKER_URL,
+    'URL:' + TRACKER_URL,
+    'BEGIN:VALARM',
+    'TRIGGER:-PT0M',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Log today\'s symptoms',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ];
+  return lines.join('\r\n');
+}
+function downloadIcs() {
+  const blob = new Blob([buildIcs()], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'symptom-tracker-daily-reminder.ics';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+document.getElementById('cal-download').onclick = downloadIcs;
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+function init() {
+  renderQuote();
+  renderStats();
+  renderHeatmap();
+  maybeShowMissedDay();
+
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    const hr = jamaicaNow().getHours();
+    const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Hey';
+    addMsg('assistant', greet + " Let's log how you're feeling today. Just tap your answer for each one.");
+    setTimeout(() => askNext(), 500);
+  }, 800);
+}
+init();
+</script>
+</body>
+</html>
