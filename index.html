@@ -1342,10 +1342,10 @@ function rangeFromPreset(preset) {
     d.setDate(d.getDate() - 89);
     from = isoKey(d);
     to   = today;
-  } else { // 'all' — go back as far as localStorage has data
-    const history = loadHistory();
-    const keys = Object.keys(history.logs || {});
-    from = keys.length > 0 ? keys.sort()[0] : isoKeyFromYMD(y, m, 1);
+  } else {
+    // 'all' — use a fixed far-back date so the worker can read ALL monthly tabs
+    // The worker filters to only existing tabs, so non-existent months are skipped
+    from = '2024-01-01';
     to   = today;
   }
   return { from, to };
@@ -1365,8 +1365,8 @@ async function fetchAndMerge(from, to) {
     // Merge symptom data (worker fills in gaps not yet in localStorage)
     if (sympData.success) {
       for (const [iso, row] of Object.entries(sympData.data)) {
-        if (!history.logs[iso] && row.date) {
-          // Reconstruct a log entry from the worker row
+        if (row.date) {
+          // Always prefer server data — it's the source of truth across devices
           const data = {};
           for (const k of SYMPTOM_KEYS_ORDERED) {
             if (row[k]) data[k] = row[k];
@@ -1380,10 +1380,10 @@ async function fetchAndMerge(from, to) {
         }
       }
     }
-    // Merge mood data
+    // Merge mood data — server is source of truth
     if (moodData.success) {
       for (const [iso, row] of Object.entries(moodData.data)) {
-        if (row.mood && !history.moods[iso]) {
+        if (row.mood) {
           history.moods[iso] = {
             date: row.date, mood: row.mood, note: row.note || ''
           };
