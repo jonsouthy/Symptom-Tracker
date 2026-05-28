@@ -1441,27 +1441,46 @@ function renderReport(history, from, to) {
   grid.appendChild(statCell(
     topSymptom ? SYMPTOM_LABELS_SHORT[topSymptom[0]] : '—',
     'Most common',
-    topSymptom ? topSymptom[1] + ' days' : 'no data'
+    topSymptom ? topSymptom[1] + ' of ' + loggedDays.length + ' logged days' : 'no data'
   ));
 
   // Days with any symptom
   const daysWithSymptom = loggedDays.filter(iso => history.logs[iso].severity !== 'none').length;
   grid.appendChild(statCell(daysWithSymptom + '', 'Days with symptoms',
-    Math.round((daysWithSymptom / Math.max(loggedDays.length,1)) * 100) + '% of logged'));
+    Math.round((daysWithSymptom / Math.max(loggedDays.length,1)) * 100) + '% of ' + loggedDays.length + ' logged'));
 
   // Mood logged count
   const moodDays = days.filter(iso => history.moods && history.moods[iso]);
   grid.appendChild(statCell(moodDays.length + '', 'Mood entries',
-    moodDays.length > 0 ? 'in range' : 'none yet'));
+    moodDays.length > 0 ? 'of ' + loggedDays.length + ' logged days' : 'none yet'));
 
   summaryCard.appendChild(grid);
   body.appendChild(summaryCard);
+
+  // ── Data coverage note (shown when logged days are a small fraction of the range) ──
+  if (total > 0 && loggedDays.length > 0) {
+    const coveragePct = loggedDays.length / total;
+    // Find the actual date span of logged data
+    const sortedLogged = [...loggedDays].sort();
+    const firstLogged = sortedLogged[0];
+    const lastLogged  = sortedLogged[sortedLogged.length - 1];
+    const spansDays   = days.indexOf(lastLogged) - days.indexOf(firstLogged) + 1;
+    // Show note if range is significantly larger than logged data span
+    if (total > 35 && spansDays < total * 0.5) {
+      const noteDiv = document.createElement('div');
+      noteDiv.style.cssText = 'margin-bottom:12px;padding:10px 14px;background:var(--sage-pale);border-radius:10px;font-size:0.78rem;color:var(--sage);line-height:1.5;';
+      noteDiv.textContent = '📋 All ' + loggedDays.length + ' logged entries fall between ' +
+        prettyDateFromIso(firstLogged) + ' – ' + prettyDateFromIso(lastLogged) +
+        '. The stats below reflect only those days.';
+      body.appendChild(noteDiv);
+    }
+  }
 
   // ── Per-symptom bars ───────────────────────────────────────────────────────
   if (loggedDays.length > 0) {
     const barsCard = document.createElement('div');
     barsCard.className = 'report-card';
-    barsCard.innerHTML = '<div class="report-card-title">Symptom breakdown</div>';
+    barsCard.innerHTML = '<div class="report-card-title">Symptom breakdown <span style="font-family:\'Outfit\',sans-serif;font-size:0.72rem;color:var(--text-muted);font-weight:400;">· ' + loggedDays.length + ' logged days</span></div>';
 
     for (const key of SYMPTOM_KEYS_ORDERED) {
       let none = 0, mild = 0, moderate = 0, severe = 0;
