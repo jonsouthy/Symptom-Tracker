@@ -107,106 +107,96 @@
   .mini-btn.ghost { color: var(--text-muted); }
   .mini-btn.ghost:active { background: #f0f0f0; }
 
-  /* --- question progress --- */
-  #q-progress-wrap {
-    width: 100%; background: var(--border); border-radius: 999px;
-    height: 4px; margin-bottom: 18px; overflow: hidden;
-  }
-  #q-progress {
-    height: 100%; background: var(--sage); border-radius: 999px;
-    transition: width 0.5s ease; width: 0%;
+  /* ── GRID LOG VIEW ─────────────────────────────────────────────────────── */
+  #log-view { margin-bottom: 10px; }
+
+  #log-hint {
+    font-size: 0.72rem; color: var(--text-muted); text-align: center;
+    margin-bottom: 10px;
   }
 
-  #messages { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-  .msg { display: flex; gap: 10px; align-items: flex-end; animation: fadeUp 0.22s ease; }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
+  #grid-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 10px;
   }
-  .msg.assistant { flex-direction: row; }
-  .msg.user      { flex-direction: row-reverse; }
-  .avatar {
-    width: 28px; height: 28px; border-radius: 50%; background: var(--sage);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.7rem; color: white; flex-shrink: 0;
-    font-family: 'Playfair Display', serif; font-style: italic;
+  .grid-head {
+    padding: 10px 14px 8px; border-bottom: 1px solid var(--sage-pale);
   }
-  .bubble { max-width: 82%; padding: 10px 14px; border-radius: 16px; font-size: 0.9rem; line-height: 1.5; }
-  .msg.assistant .bubble { background: var(--white); border: 1px solid var(--border); border-bottom-left-radius: 4px; color: var(--text); }
-  .msg.user .bubble { background: var(--sage); color: white; border-bottom-right-radius: 4px; }
-  .bubble.typing span {
-    display: inline-block; width: 6px; height: 6px; background: var(--sage-mid);
-    border-radius: 50%; animation: blink 1.2s infinite; margin: 0 2px;
+  .grid-head p {
+    font-family: 'Playfair Display', serif; font-size: 0.9rem; color: var(--sage); margin: 0;
   }
-  .bubble.typing span:nth-child(2) { animation-delay: 0.2s; }
-  .bubble.typing span:nth-child(3) { animation-delay: 0.4s; }
+  .sym-row {
+    display: flex; align-items: center; padding: 0 12px;
+    border-bottom: 1px solid #f4f4f4; min-height: 46px;
+  }
+  .sym-row:last-child { border-bottom: none; }
+  .sym-name {
+    font-size: 0.76rem; font-weight: 500; color: var(--text);
+    flex: 0 0 118px; line-height: 1.3;
+  }
+  .seg { display: flex; flex: 1; gap: 4px; }
+  .seg-btn {
+    flex: 1; padding: 8px 2px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--white);
+    font-family: 'Outfit', sans-serif; font-size: 0.63rem; font-weight: 500;
+    color: #999; cursor: pointer; text-align: center; line-height: 1;
+    -webkit-appearance: none; transition: all 0.1s ease;
+  }
+  .seg-btn:active { transform: scale(0.93); }
+  /* selected states — calm green gradient, no reds */
+  .seg-btn.sel-no       { background: var(--sage-pale);   border-color: var(--sage);     color: var(--sage); }
+  .seg-btn.sel-mild     { background: var(--mild-bg);     border-color: var(--mild);     color: var(--sage); }
+  .seg-btn.sel-moderate { background: var(--moderate-bg); border-color: var(--moderate); color: var(--sage); }
+  .seg-btn.sel-severe   { background: var(--severe-bg);   border-color: var(--severe);   color: var(--severe); }
+  .seg-btn.sel-normal   { background: var(--sage-pale);   border-color: var(--sage);     color: var(--sage); }
+  .seg-btn.sel-abnormal { background: var(--moderate-bg); border-color: var(--moderate); color: var(--sage); }
+
+  /* mood card */
+  #mood-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px;
+  }
+  .mood-card-title {
+    font-family: 'Playfair Display', serif; font-size: 0.9rem; color: var(--sage);
+    margin-bottom: 10px;
+  }
+  #mood-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;
+  }
+  .mood-btn {
+    padding: 9px 4px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--white); font-family: 'Outfit', sans-serif;
+    font-size: 0.67rem; font-weight: 500; color: var(--text-muted);
+    cursor: pointer; text-align: center; line-height: 1.35;
+    -webkit-appearance: none; transition: all 0.1s ease;
+  }
+  .mood-btn.sel { background: var(--sage-pale); border-color: var(--sage); color: var(--sage); }
+  .mood-btn:active { transform: scale(0.93); }
+
+  /* optional note */
+  #mood-note {
+    width: 100%; padding: 10px 12px; border-radius: 12px;
+    border: 1.5px solid var(--border); background: var(--white);
+    font-family: 'Outfit', sans-serif; font-size: 0.85rem; color: var(--text);
+    resize: none; line-height: 1.5; -webkit-appearance: none; outline: none; display: block;
+  }
+  #mood-note:focus { border-color: var(--sage-mid); }
+
+  /* log submit button */
+  #log-btn {
+    width: 100%; padding: 15px; border-radius: 14px; border: none;
+    background: var(--sage); color: var(--white);
+    font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; -webkit-appearance: none; transition: opacity 0.15s ease;
+    margin-bottom: 8px;
+  }
+  #log-btn:active { opacity: 0.87; }
+
+  /* reusable blink animation — used by insights dots in reports */
   @keyframes blink {
     0%,80%,100% { opacity:0.2; transform:scale(0.8); }
     40%          { opacity:1;   transform:scale(1); }
   }
-  #btn-area { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
-  .btn-row { display: flex; gap: 8px; }
-  .choice-btn {
-    flex: 1; padding: 14px 8px; border-radius: 14px; border: 2px solid var(--border);
-    background: var(--white); font-family: 'Outfit', sans-serif; font-size: 0.9rem;
-    font-weight: 500; color: var(--text); cursor: pointer; transition: all 0.15s ease;
-    text-align: center; -webkit-appearance: none;
-  }
-  .choice-btn:active { transform: scale(0.95); }
-  .choice-btn.no       { border-color: #ccc; color: #888; }
-  .choice-btn.no:active { background: #f0f0f0; border-color: #aaa; }
-  .choice-btn.mild     { border-color: var(--mild); color: var(--sage); }
-  .choice-btn.mild:active { background: var(--mild-bg); }
-  .choice-btn.moderate { border-color: var(--moderate); color: var(--sage); }
-  .choice-btn.moderate:active { background: var(--moderate-bg); }
-  .choice-btn.severe   { border-color: var(--severe); color: var(--severe); }
-  .choice-btn.severe:active { background: var(--severe-bg); }
-  .choice-btn.normal   { border-color: var(--sage); color: var(--sage); }
-  .choice-btn.normal:active { background: var(--sage-pale); }
-  .choice-btn.abnormal { border-color: var(--moderate); color: var(--sage); }
-  .choice-btn.abnormal:active { background: var(--moderate-bg); }
-
-  /* mood buttons — 7-step scale matching the sheet (green gradient, no warm colours) */
-  .choice-btn.mood-numb        { border-color: var(--severe);   color: var(--severe); }
-  .choice-btn.mood-numb:active { background: var(--severe-bg); }
-  .choice-btn.mood-rock-bottom { border-color: var(--severe);   color: var(--severe); }
-  .choice-btn.mood-rock-bottom:active { background: var(--severe-bg); }
-  .choice-btn.mood-irritable   { border-color: var(--moderate); color: var(--sage); }
-  .choice-btn.mood-irritable:active { background: var(--moderate-bg); }
-  .choice-btn.mood-sad         { border-color: var(--moderate); color: var(--sage); }
-  .choice-btn.mood-sad:active  { background: var(--moderate-bg); }
-  .choice-btn.mood-anxious     { border-color: var(--sage-mid); color: var(--sage); }
-  .choice-btn.mood-anxious:active { background: var(--sage-pale); }
-  .choice-btn.mood-okay        { border-color: var(--mild); color: var(--sage); }
-  .choice-btn.mood-okay:active { background: var(--mild-bg); }
-  .choice-btn.mood-happy       { border-color: var(--sage); color: var(--sage); }
-  .choice-btn.mood-happy:active { background: var(--sage-pale); }
-
-  /* free-text note area */
-  .note-wrap { display: flex; flex-direction: column; gap: 8px; }
-  .note-input {
-    width: 100%; padding: 12px 14px; border-radius: 14px;
-    border: 2px solid var(--border); background: var(--white);
-    font-family: 'Outfit', sans-serif; font-size: 0.9rem; color: var(--text);
-    resize: none; line-height: 1.5; -webkit-appearance: none;
-    outline: none;
-  }
-  .note-input:focus { border-color: var(--sage-mid); }
-  .note-submit {
-    align-self: flex-end; padding: 11px 22px; border-radius: 12px;
-    border: none; background: var(--sage); color: white;
-    font-family: 'Outfit', sans-serif; font-size: 0.88rem; font-weight: 500;
-    cursor: pointer; -webkit-appearance: none;
-  }
-  .note-submit:active { opacity: 0.85; }
-  .note-skip {
-    align-self: flex-end; padding: 11px 16px; border-radius: 12px;
-    border: 1.5px solid var(--border); background: var(--white); color: var(--text-muted);
-    font-family: 'Outfit', sans-serif; font-size: 0.88rem; font-weight: 500;
-    cursor: pointer; -webkit-appearance: none; margin-right: 8px;
-  }
-  .note-skip:active { background: #f0f0f0; }
-  .note-actions { display: flex; justify-content: flex-end; }
 
   /* --- yesterday-mode banner --- */
   #date-context {
@@ -542,12 +532,24 @@
   </div>
 
   <div id="date-context"></div>
-  <div id="q-progress-wrap"><div id="q-progress"></div></div>
-  <div id="messages"></div>
-  <div id="btn-area"></div>
+
+  <!-- ── LOG VIEW (quick-log grid) ─────────────────────────────────────── -->
+  <div id="log-view">
+    <p id="log-hint">All set to No — just tap what applies today.</p>
+    <div id="grid-card">
+      <div class="grid-head"><p id="grid-head-label">Today's symptoms</p></div>
+      <!-- symptom rows injected by buildGrid() -->
+    </div>
+    <div id="mood-card">
+      <p class="mood-card-title" id="mood-card-title">Mood today</p>
+      <div id="mood-grid"></div>
+      <textarea id="mood-note" rows="2" placeholder="Anything on your mind? (optional)"></textarea>
+    </div>
+    <button id="log-btn" onclick="submitGrid()">Log today</button>
+  </div>
 
   <div id="summary-card">
-    <h2>Today's Summary</h2>
+    <h2 id="summary-title">Today's Summary</h2>
     <div id="summary-rows"></div>
   </div>
   <div id="save-status"></div>
@@ -661,7 +663,7 @@ function dailyQuote() {
 
 function renderQuote() {
   const { q, a } = dailyQuote();
-  document.getElementById('quote-text').textContent = '“' + q + '”';
+  document.getElementById('quote-text').textContent = '"' + q + '"';
   document.getElementById('quote-attr').textContent = '— ' + a;
 }
 
@@ -791,37 +793,11 @@ const SYMPTOMS = [
   { key: 'nausea',            label: 'Nausea',               type: 'severity' },
   { key: 'nervePain',         label: 'Nerve Pain',           type: 'severity' },
   { key: 'abdomenDiscomfort', label: 'Abdomen Discomfort',   type: 'severity' },
-  { key: 'neckShoulderPain',  label: 'Neck & Shoulder Pain', type: 'severity' },
+  { key: 'neckShoulderPain',  label: 'Neck & Shoulder',      type: 'severity' },
   { key: 'constipation',      label: 'Constipation',         type: 'severity' },
   { key: 'insomnia',          label: 'Insomnia',             type: 'severity' },
   { key: 'appetite',          label: 'Appetite',             type: 'appetite' },
 ];
-const QUESTIONS = {
-  migraine:          "Any headaches or migraines today?",
-  fatigue:           "How are your energy levels? Feeling fatigued?",
-  pelvicPain:        "Any pelvic pain or discomfort?",
-  backPain:          "How's your back feeling?",
-  nausea:            "Any nausea today?",
-  nervePain:         "Any nerve pain?",
-  abdomenDiscomfort: "Any abdominal discomfort?",
-  neckShoulderPain:  "Any neck or shoulder tension?",
-  constipation:      "Any constipation?",
-  insomnia:          "How did you sleep last night?",
-  appetite:          "How's your appetite today?",
-};
-const QUESTIONS_Y = {
-  migraine:          "Any headaches or migraines yesterday?",
-  fatigue:           "How were your energy levels yesterday?",
-  pelvicPain:        "Any pelvic pain or discomfort yesterday?",
-  backPain:          "How was your back yesterday?",
-  nausea:            "Any nausea yesterday?",
-  nervePain:         "Any nerve pain yesterday?",
-  abdomenDiscomfort: "Any abdominal discomfort yesterday?",
-  neckShoulderPain:  "Any neck or shoulder tension yesterday?",
-  constipation:      "Any constipation yesterday?",
-  insomnia:          "How did you sleep the night before last?",
-  appetite:          "How was your appetite yesterday?",
-};
 const LABELS = {
   migraine: 'Migraine', nausea: 'Nausea', pelvicPain: 'Pelvic Pain',
   backPain: 'Back Pain', constipation: 'Constipation', fatigue: 'Fatigue',
@@ -831,25 +807,21 @@ const LABELS = {
 
 // Mood scale — 7 steps matching the Google Sheet dropdown (col B = Description)
 const MOOD_OPTS = [
-  { label: 'Numb',        cls: 'mood-numb',        value: 'Numb'        },
-  { label: 'Rock Bottom', cls: 'mood-rock-bottom',  value: 'Rock Bottom' },
-  { label: 'Irritable',   cls: 'mood-irritable',    value: 'Irritable'   },
-  { label: 'Sad',         cls: 'mood-sad',          value: 'Sad'         },
-  { label: 'Anxious',     cls: 'mood-anxious',      value: 'Anxious'     },
-  { label: 'Okay',        cls: 'mood-okay',         value: 'Okay'        },
-  { label: 'Happy',       cls: 'mood-happy',        value: 'Happy'       },
+  { label: 'Numb',        value: 'Numb'        },
+  { label: 'Rock Bottom', value: 'Rock Bottom' },
+  { label: 'Irritable',   value: 'Irritable'   },
+  { label: 'Sad',         value: 'Sad'         },
+  { label: 'Anxious',     value: 'Anxious'     },
+  { label: 'Okay',        value: 'Okay'        },
+  { label: 'Happy',       value: 'Happy'       },
 ];
 
 // session state
 let collected = {};
-let currentIdx = 0;
-let busy = false;
 let targetDate = jamaicaNow();
 let targetIso = isoKey(targetDate);
 let targetPretty = prettyDate(targetDate);
 let isYesterdayMode = false;
-// mood flow state
-let moodPhase = false;    // true when we're in the mood sub-flow
 let collectedMood = '';
 let collectedNote = '';
 
@@ -858,9 +830,6 @@ document.getElementById('today-date').textContent = targetPretty;
 /* =========================================================================
    DOM REFS
    ========================================================================= */
-const messagesEl   = document.getElementById('messages');
-const btnArea      = document.getElementById('btn-area');
-const qProgress    = document.getElementById('q-progress');
 const saveStatus   = document.getElementById('save-status');
 const missedBanner = document.getElementById('missed-banner');
 const dateContext  = document.getElementById('date-context');
@@ -953,226 +922,155 @@ function maybeShowMissedDay() {
     missedBanner.style.display = 'none';
   };
 }
+
 function startYesterdayFlow(yesterdayDate) {
   targetDate = yesterdayDate;
   targetIso = isoKey(targetDate);
   targetPretty = prettyDate(targetDate);
   isYesterdayMode = true;
-  collected = {};
-  currentIdx = 0;
-  moodPhase = false;
   collectedMood = '';
   collectedNote = '';
-  messagesEl.innerHTML = '';
-  btnArea.innerHTML = '';
+
+  // Hide summary if showing
   document.getElementById('summary-card').style.display = 'none';
   saveStatus.style.display = 'none';
-  setProgress(0);
+
+  // Show date context banner
   dateContext.style.display = 'block';
   dateContext.textContent = "Logging for yesterday — " + targetPretty;
-  showTyping();
-  setTimeout(() => {
-    removeTyping();
-    addMsg('assistant', "Let's catch up on yesterday. Tap how each one felt.");
-    setTimeout(() => askNext(), 450);
-  }, 600);
+
+  // Update labels to "yesterday" context
+  document.getElementById('grid-head-label').textContent = "Yesterday's symptoms";
+  document.getElementById('mood-card-title').textContent = "Mood yesterday";
+  document.getElementById('log-btn').textContent = "Log yesterday";
+  document.getElementById('log-hint').textContent = "All set to No — just tap what applied yesterday.";
+
+  // Rebuild grid fresh with all defaults
+  buildGrid();
+  buildMoodSection();
+
+  document.getElementById('log-view').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 /* =========================================================================
-   CHAT FLOW
+   GRID FUNCTIONS
    ========================================================================= */
-function setProgress(idx) {
-  // progress bar covers symptoms + 2 mood steps (mood pick + note)
-  const total = SYMPTOMS.length + 2;
-  qProgress.style.width = Math.round((idx / total) * 100) + '%';
-}
-function scrollBottom() {
-  setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
-}
-function addMsg(role, text) {
-  const d = document.createElement('div');
-  d.className = 'msg ' + role;
-  d.innerHTML = role === 'assistant'
-    ? '<div class="avatar">S</div><div class="bubble">' + text + '</div>'
-    : '<div class="bubble">' + text + '</div>';
-  messagesEl.appendChild(d);
-  scrollBottom();
-}
-function showTyping() {
-  const d = document.createElement('div');
-  d.className = 'msg assistant'; d.id = 'typing';
-  d.innerHTML = '<div class="avatar">S</div><div class="bubble typing"><span></span><span></span><span></span></div>';
-  messagesEl.appendChild(d);
-  scrollBottom();
-}
-function removeTyping() {
-  const t = document.getElementById('typing');
-  if (t) t.remove();
-}
-function clearBtns() { btnArea.innerHTML = ''; }
+function buildGrid() {
+  const card = document.getElementById('grid-card');
+  // Remove any existing symptom rows (keeps the .grid-head)
+  card.querySelectorAll('.sym-row').forEach(r => r.remove());
 
-function showButtons(symptomKey) {
-  clearBtns();
-  const row = document.createElement('div');
-  row.className = 'btn-row';
-  const opts = symptomKey === 'appetite'
-    ? [{ l: 'Normal', c: 'normal', v: 'Normal' }, { l: 'Abnormal', c: 'abnormal', v: 'Abnormal' }]
-    : [
-        { l: 'No',       c: 'no',       v: 'no' },
-        { l: 'Mild',     c: 'mild',     v: 'Mild' },
-        { l: 'Moderate', c: 'moderate', v: 'Moderate' },
-        { l: 'Severe',   c: 'severe',   v: 'Severe' },
-      ];
-  opts.forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'choice-btn ' + opt.c;
-    btn.textContent = opt.l;
-    btn.onclick = () => pick(symptomKey, opt.v, opt.l);
-    row.appendChild(btn);
+  SYMPTOMS.forEach(sym => {
+    const defaultVal = sym.type === 'appetite' ? 'Normal' : 'no';
+    collected[sym.key] = defaultVal;
+
+    const row = document.createElement('div');
+    row.className = 'sym-row';
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'sym-name';
+    nameEl.textContent = sym.label;
+    row.appendChild(nameEl);
+
+    const seg = document.createElement('div');
+    seg.className = 'seg';
+
+    const opts = sym.type === 'appetite'
+      ? [{ v: 'Normal', l: 'Normal' }, { v: 'Abnormal', l: 'Abnormal' }]
+      : [
+          { v: 'no',       l: 'No'       },
+          { v: 'Mild',     l: 'Mild'     },
+          { v: 'Moderate', l: 'Moderate' },
+          { v: 'Severe',   l: 'Severe'   },
+        ];
+
+    opts.forEach(opt => {
+      const btn = document.createElement('button');
+      const isDefault = opt.v === defaultVal;
+      btn.className = 'seg-btn' + (isDefault ? ' sel-' + opt.v.toLowerCase() : '');
+      btn.textContent = opt.l;
+      btn.onclick = () => {
+        seg.querySelectorAll('.seg-btn').forEach(b => b.className = 'seg-btn');
+        btn.className = 'seg-btn sel-' + opt.v.toLowerCase();
+        collected[sym.key] = opt.v;
+      };
+      seg.appendChild(btn);
+    });
+
+    row.appendChild(seg);
+    card.appendChild(row);
   });
-  btnArea.appendChild(row);
-  scrollBottom();
 }
 
-function showMoodButtons() {
-  clearBtns();
-  // Three rows: 2 / 3 / 2 — groups naturally from hardest to brightest
-  const row1 = document.createElement('div'); row1.className = 'btn-row';
-  const row2 = document.createElement('div'); row2.className = 'btn-row';
-  const row3 = document.createElement('div'); row3.className = 'btn-row';
-  const rows = [row1, row1, row2, row2, row2, row3, row3]; // 0,1 → r1; 2,3,4 → r2; 5,6 → r3
-  MOOD_OPTS.forEach((opt, i) => {
+function buildMoodSection() {
+  collectedMood = '';
+  const grid = document.getElementById('mood-grid');
+  grid.innerHTML = '';
+  MOOD_OPTS.forEach(opt => {
     const btn = document.createElement('button');
-    btn.className = 'choice-btn ' + opt.cls;
+    btn.className = 'mood-btn';
     btn.textContent = opt.label;
-    btn.onclick = () => pickMood(opt.value);
-    rows[i].appendChild(btn);
+    btn.onclick = () => {
+      grid.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      collectedMood = opt.value;
+    };
+    grid.appendChild(btn);
   });
-  btnArea.appendChild(row1);
-  btnArea.appendChild(row2);
-  btnArea.appendChild(row3);
-  scrollBottom();
+  document.getElementById('mood-note').value = '';
 }
 
-function showNoteInput() {
-  clearBtns();
-  const wrap = document.createElement('div');
-  wrap.className = 'note-wrap';
-  const textarea = document.createElement('textarea');
-  textarea.className = 'note-input';
-  textarea.rows = 3;
-  textarea.placeholder = "Anything on your mind? (optional)";
-  wrap.appendChild(textarea);
-  const actions = document.createElement('div');
-  actions.className = 'note-actions';
-  const skipBtn = document.createElement('button');
-  skipBtn.className = 'note-skip';
-  skipBtn.textContent = 'Skip';
-  skipBtn.onclick = () => finishMood('');
-  const submitBtn = document.createElement('button');
-  submitBtn.className = 'note-submit';
-  submitBtn.textContent = 'Done';
-  submitBtn.onclick = () => finishMood(textarea.value.trim());
-  actions.appendChild(skipBtn);
-  actions.appendChild(submitBtn);
-  wrap.appendChild(actions);
-  btnArea.appendChild(wrap);
-  scrollBottom();
-}
-
-function pick(key, value, label) {
-  if (busy) return;
-  busy = true;
-  collected[key] = value;
-  addMsg('user', label);
-  clearBtns();
-  currentIdx++;
-  setProgress(currentIdx);
-  setTimeout(() => {
-    if (currentIdx < SYMPTOMS.length) {
-      askNext();
-    } else {
-      // symptoms done — transition to mood
-      startMoodFlow();
-    }
-    busy = false;
-  }, 350);
-}
-
-function askNext() {
-  const s = SYMPTOMS[currentIdx];
-  showTyping();
-  setTimeout(() => {
-    removeTyping();
-    const q = isYesterdayMode ? QUESTIONS_Y[s.key] : QUESTIONS[s.key];
-    addMsg('assistant', q);
-    showButtons(s.key);
-  }, 550);
-}
-
-/* =========================================================================
-   MOOD SUB-FLOW (runs after all 11 symptoms)
-   ========================================================================= */
-function startMoodFlow() {
-  moodPhase = true;
-  showTyping();
-  setTimeout(() => {
-    removeTyping();
-    const dayWord = isYesterdayMode ? "yesterday" : "today";
-    addMsg('assistant', "One more — how would you describe your mood " + dayWord + "?");
-    showMoodButtons();
-  }, 650);
-}
-
-function pickMood(value) {
-  collectedMood = value;
-  addMsg('user', value);
-  clearBtns();
-  setProgress(SYMPTOMS.length + 1);
-  showTyping();
-  setTimeout(() => {
-    removeTyping();
-    addMsg('assistant', "Anything on your mind you'd like to note?");
-    showNoteInput();
-  }, 500);
-}
-
-async function finishMood(note) {
-  collectedNote = note;
-  if (note) addMsg('user', note);
-  clearBtns();
-  setProgress(SYMPTOMS.length + 2);
-  showTyping();
-  setTimeout(async () => {
-    removeTyping();
-    const issues = Object.entries(collected).filter(([k,v]) => v !== 'no' && v !== 'Normal');
-    const dayWord = isYesterdayMode ? "yesterday" : "today";
-    const msg = issues.length === 0
-      ? "Sounds like " + (isYesterdayMode ? "yesterday was a good day" : "a good day") + "! All logged. 🌿"
-      : "Got it — I've noted " + issues.map(([k]) => LABELS[k]).join(', ') + ". Take care of yourself " + dayWord + ". 💚";
-    addMsg('assistant', msg);
-    showSummary();
-    await saveToSheets();
-    await saveMoodToSheets();
-  }, 650);
+async function submitGrid() {
+  collectedNote = document.getElementById('mood-note').value.trim();
+  // Hide grid, show summary
+  document.getElementById('log-view').style.display = 'none';
+  showSummary();
+  await saveToSheets();
+  if (collectedMood) await saveMoodToSheets();
 }
 
 /* =========================================================================
    SUMMARY CARD
    ========================================================================= */
+function scrollBottom() {
+  setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
+}
+
 function showSummary() {
   const card = document.getElementById('summary-card');
+  const titleEl = document.getElementById('summary-title');
   const rows = document.getElementById('summary-rows');
   rows.innerHTML = '';
-  for (const [key, val] of Object.entries(collected)) {
-    const row = document.createElement('div');
-    row.className = 's-row';
-    const bc = val === 'Severe' ? 'b-severe' : val === 'Moderate' ? 'b-moderate'
-             : val === 'Mild' ? 'b-mild' : val === 'Normal' ? 'b-normal' : 'b-no';
-    row.innerHTML = '<span class="s-name">' + LABELS[key] + '</span><span class="badge ' + bc + '">' + val + '</span>';
-    rows.appendChild(row);
+
+  titleEl.textContent = isYesterdayMode ? "Yesterday's Summary" : "Today's Summary";
+
+  // Show only notable entries (skip 'no' / 'Normal' defaults)
+  const notable = Object.entries(collected).filter(([k, v]) => v !== 'no' && v !== 'Normal');
+
+  if (notable.length === 0) {
+    const clearRow = document.createElement('div');
+    clearRow.className = 's-row';
+    clearRow.style.justifyContent = 'center';
+    const dayWord = isYesterdayMode ? 'yesterday' : 'today';
+    clearRow.innerHTML = '<span style="color:var(--sage);font-size:0.9rem;">All clear ' + dayWord + ' 🌿</span>';
+    rows.appendChild(clearRow);
+  } else {
+    for (const [key, val] of notable) {
+      const row = document.createElement('div');
+      row.className = 's-row';
+      const bc = val === 'Severe'   ? 'b-severe'
+               : val === 'Moderate' ? 'b-moderate'
+               : val === 'Mild'     ? 'b-mild'
+               : val === 'Abnormal' ? 'b-moderate'
+               : val === 'Normal'   ? 'b-normal'
+               : 'b-no';
+      row.innerHTML = '<span class="s-name">' + LABELS[key] + '</span><span class="badge ' + bc + '">' + val + '</span>';
+      rows.appendChild(row);
+    }
   }
-  // mood row
+
+  // Mood row
   if (collectedMood) {
     const moodRow = document.createElement('div');
     moodRow.className = 's-row';
@@ -1233,7 +1131,6 @@ async function saveMoodToSheets() {
     });
     const result = await res.json();
     if (!result.success) {
-      // Surface the error so we can see exactly what's failing
       saveStatus.className = 'error';
       saveStatus.textContent = 'Mood saved locally — sheet write failed: ' + (result.error || 'unknown');
     }
@@ -1344,7 +1241,6 @@ function rangeFromPreset(preset) {
     to   = today;
   } else {
     // 'all' — use a fixed far-back date so the worker can read ALL monthly tabs
-    // Each month is fetched individually; missing tabs are skipped silently
     from = '2025-01-01';
     to   = today;
   }
@@ -1366,7 +1262,6 @@ async function fetchAndMerge(from, to) {
     if (sympData.success) {
       for (const [iso, row] of Object.entries(sympData.data)) {
         if (row.date) {
-          // Always prefer server data — it's the source of truth across devices
           const data = {};
           for (const k of SYMPTOM_KEYS_ORDERED) {
             if (row[k]) data[k] = row[k];
@@ -1459,13 +1354,10 @@ function renderReport(history, from, to) {
 
   // ── Data coverage note (shown when logged days are a small fraction of the range) ──
   if (total > 0 && loggedDays.length > 0) {
-    const coveragePct = loggedDays.length / total;
-    // Find the actual date span of logged data
     const sortedLogged = [...loggedDays].sort();
     const firstLogged = sortedLogged[0];
     const lastLogged  = sortedLogged[sortedLogged.length - 1];
     const spansDays   = days.indexOf(lastLogged) - days.indexOf(firstLogged) + 1;
-    // Show note if range is significantly larger than logged data span
     if (total > 35 && spansDays < total * 0.5) {
       const noteDiv = document.createElement('div');
       noteDiv.style.cssText = 'margin-bottom:12px;padding:10px 14px;background:var(--sage-pale);border-radius:10px;font-size:0.78rem;color:var(--sage);line-height:1.5;';
@@ -1787,19 +1679,13 @@ document.querySelectorAll('.range-btn').forEach(btn => {
    INIT
    ========================================================================= */
 function init() {
+  document.getElementById('today-date').textContent = targetPretty;
   renderQuote();
   renderStats();
   renderHeatmap();
+  buildGrid();
+  buildMoodSection();
   maybeShowMissedDay();
-
-  showTyping();
-  setTimeout(() => {
-    removeTyping();
-    const hr = jamaicaNow().getHours();
-    const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Hey';
-    addMsg('assistant', greet + " Let's log how you're feeling today. Just tap your answer for each one.");
-    setTimeout(() => askNext(), 500);
-  }, 800);
 }
 init();
 </script>
