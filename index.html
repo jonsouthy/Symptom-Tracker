@@ -16,7 +16,6 @@
     --text-muted: #7a7a7a;
     --white: #ffffff;
     --border: #dde8df;
-    /* calm green severity gradient — no reds or amber anywhere */
     --severe:      #6aa84f;
     --severe-bg:   #daefd0;
     --moderate:    #93c47d;
@@ -24,6 +23,21 @@
     --mild:        #c5e0bb;
     --mild-bg:     #eef7ea;
     --none-bg: #f4efe6;
+    /* mood colours — matching the Google Sheet scale */
+    --mood-happy: #38761d;
+    --mood-happy-bg: #d5eacc;
+    --mood-okay: #6aa84f;
+    --mood-okay-bg: #dff0d8;
+    --mood-anxious: #d4a94a;
+    --mood-anxious-bg: #f7f0d8;
+    --mood-sad: #c9a040;
+    --mood-sad-bg: #f5edd0;
+    --mood-irritable: #cc7a72;
+    --mood-irritable-bg: #f2ddd9;
+    --mood-rockbottom: #b85c5c;
+    --mood-rockbottom-bg: #f0d8d8;
+    --mood-numb: #a68a3c;
+    --mood-numb-bg: #f5efd8;
     --radius: 18px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -35,7 +49,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px 16px 80px;
+    padding: 20px 16px 90px;
   }
   header { text-align: center; margin-bottom: 14px; }
   header h1 { font-family: 'Playfair Display', serif; font-size: 1.75rem; color: var(--sage); }
@@ -59,10 +73,8 @@
     color: var(--text-muted); font-weight: 500;
   }
 
-  /* --- stats strip (streak + month progress) --- */
-  #stats-strip {
-    display: flex; gap: 10px; margin-bottom: 14px;
-  }
+  /* --- stats strip --- */
+  #stats-strip { display: flex; gap: 10px; margin-bottom: 14px; }
   .stat-card {
     flex: 1; background: var(--white); border: 1px solid var(--border);
     border-radius: 14px; padding: 10px 12px;
@@ -77,14 +89,19 @@
     color: var(--sage); display: flex; align-items: center; gap: 6px;
   }
   .stat-value .flame { font-size: 1.05rem; }
-  .month-bar {
-    height: 4px; background: var(--sage-pale); border-radius: 999px;
-    overflow: hidden; margin-top: 4px;
+  .month-bar { height: 4px; background: var(--sage-pale); border-radius: 999px; overflow: hidden; margin-top: 4px; }
+  .month-bar-fill { height: 100%; background: var(--sage); border-radius: 999px; transition: width 0.5s ease; width: 0%; }
+
+  /* --- weather card --- */
+  #weather-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 14px; padding: 10px 14px; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px;
   }
-  .month-bar-fill {
-    height: 100%; background: var(--sage); border-radius: 999px;
-    transition: width 0.5s ease; width: 0%;
-  }
+  .weather-icon { font-size: 1.5rem; }
+  .weather-details { flex: 1; }
+  .weather-temp { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--sage); }
+  .weather-meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
 
   /* --- missed-day banner --- */
   #missed-banner {
@@ -92,9 +109,7 @@
     border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
     box-shadow: 0 2px 12px rgba(74,102,82,0.05);
   }
-  #missed-banner p {
-    font-size: 0.86rem; color: var(--text); margin-bottom: 10px; line-height: 1.4;
-  }
+  #missed-banner p { font-size: 0.86rem; color: var(--text); margin-bottom: 10px; line-height: 1.4; }
   #missed-banner .banner-actions { display: flex; gap: 8px; }
   .mini-btn {
     flex: 1; padding: 9px 8px; border-radius: 10px; border: 1.5px solid var(--border);
@@ -107,14 +122,32 @@
   .mini-btn.ghost { color: var(--text-muted); }
   .mini-btn.ghost:active { background: #f0f0f0; }
 
-  /* ── GRID LOG VIEW ─────────────────────────────────────────────────────── */
-  #log-view { margin-bottom: 10px; }
+  /* ── TAB BAR ──────────────────────────────────────────────────────────── */
+  #tab-bar {
+    display: flex; gap: 0; margin-bottom: 14px;
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+  }
+  .tab-btn {
+    flex: 1; padding: 11px 4px 9px; border: none; background: none;
+    font-family: 'Outfit', sans-serif; font-size: 0.72rem; font-weight: 500;
+    color: var(--text-muted); cursor: pointer; text-align: center;
+    border-bottom: 2.5px solid transparent; transition: all 0.15s ease;
+    -webkit-appearance: none; line-height: 1.2;
+  }
+  .tab-btn.active { color: var(--sage); border-bottom-color: var(--sage); background: var(--sage-pale); }
+  .tab-btn:active { opacity: 0.7; }
+  .tab-btn-icon { display: block; font-size: 1.1rem; margin-bottom: 2px; }
 
+  /* tab panels */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── GRID LOG VIEW ────────────────────────────────────────────────────── */
   #log-hint {
     font-size: 0.72rem; color: var(--text-muted); text-align: center;
     margin-bottom: 10px;
   }
-
   #grid-card {
     background: var(--white); border: 1px solid var(--border);
     border-radius: var(--radius); overflow: hidden; margin-bottom: 10px;
@@ -143,7 +176,6 @@
     -webkit-appearance: none; transition: all 0.1s ease;
   }
   .seg-btn:active { transform: scale(0.93); }
-  /* selected states — calm green gradient, no reds */
   .seg-btn.sel-no       { background: var(--sage-pale);   border-color: var(--sage);     color: var(--sage); }
   .seg-btn.sel-mild     { background: var(--mild-bg);     border-color: var(--mild);     color: var(--sage); }
   .seg-btn.sel-moderate { background: var(--moderate-bg); border-color: var(--moderate); color: var(--sage); }
@@ -151,8 +183,8 @@
   .seg-btn.sel-normal   { background: var(--sage-pale);   border-color: var(--sage);     color: var(--sage); }
   .seg-btn.sel-abnormal { background: var(--moderate-bg); border-color: var(--moderate); color: var(--sage); }
 
-  /* mood card */
-  #mood-card {
+  /* ── MOOD SECTION (own tab) ───────────────────────────────────────────── */
+  .mood-card {
     background: var(--white); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px;
   }
@@ -160,7 +192,7 @@
     font-family: 'Playfair Display', serif; font-size: 0.9rem; color: var(--sage);
     margin-bottom: 10px;
   }
-  #mood-grid {
+  .mood-grid {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;
   }
   .mood-btn {
@@ -170,29 +202,110 @@
     cursor: pointer; text-align: center; line-height: 1.35;
     -webkit-appearance: none; transition: all 0.1s ease;
   }
-  .mood-btn.sel { background: var(--sage-pale); border-color: var(--sage); color: var(--sage); }
   .mood-btn:active { transform: scale(0.93); }
+  /* mood colours per value */
+  .mood-btn.sel-happy       { background: var(--mood-happy-bg);      border-color: var(--mood-happy);      color: var(--mood-happy); }
+  .mood-btn.sel-okay        { background: var(--mood-okay-bg);       border-color: var(--mood-okay);       color: var(--mood-okay); }
+  .mood-btn.sel-anxious     { background: var(--mood-anxious-bg);    border-color: var(--mood-anxious);    color: #7a5c00; }
+  .mood-btn.sel-sad         { background: var(--mood-sad-bg);        border-color: var(--mood-sad);        color: #7a5c00; }
+  .mood-btn.sel-irritable   { background: var(--mood-irritable-bg);  border-color: var(--mood-irritable);  color: #8a3a34; }
+  .mood-btn.sel-rockbottom  { background: var(--mood-rockbottom-bg); border-color: var(--mood-rockbottom); color: #7a2e2e; }
+  .mood-btn.sel-numb        { background: var(--mood-numb-bg);       border-color: var(--mood-numb);       color: #6a5a20; }
 
-  /* optional note */
-  #mood-note {
+  .mood-note {
     width: 100%; padding: 10px 12px; border-radius: 12px;
     border: 1.5px solid var(--border); background: var(--white);
     font-family: 'Outfit', sans-serif; font-size: 0.85rem; color: var(--text);
     resize: none; line-height: 1.5; -webkit-appearance: none; outline: none; display: block;
   }
-  #mood-note:focus { border-color: var(--sage-mid); }
+  .mood-note:focus { border-color: var(--sage-mid); }
 
-  /* log submit button */
-  #log-btn {
+  /* ── MEDICATION TAB ───────────────────────────────────────────────────── */
+  .med-section-title {
+    font-family: 'Outfit', sans-serif; font-size: 0.72rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--sage); margin: 14px 0 8px; padding-left: 2px;
+  }
+  .med-section-title:first-child { margin-top: 0; }
+  .med-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 10px;
+  }
+  .med-row {
+    display: flex; align-items: center; padding: 10px 14px;
+    border-bottom: 1px solid #f4f4f4; gap: 10px;
+  }
+  .med-row:last-child { border-bottom: none; }
+  .med-check {
+    width: 22px; height: 22px; border-radius: 6px;
+    border: 2px solid var(--sage-mid); background: var(--white);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.15s ease; -webkit-appearance: none;
+    font-size: 0.8rem; color: transparent;
+  }
+  .med-check.checked {
+    background: var(--sage); border-color: var(--sage); color: white;
+  }
+  .med-info { flex: 1; }
+  .med-name { font-size: 0.82rem; font-weight: 500; color: var(--text); }
+  .med-dose { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; }
+
+  /* ── RECIPE TAB ───────────────────────────────────────────────────────── */
+  .phase-selector {
+    display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .phase-btn {
+    padding: 8px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+    background: var(--white); font-family: 'Outfit', sans-serif; font-size: 0.76rem;
+    font-weight: 500; color: var(--text-muted); cursor: pointer; -webkit-appearance: none;
+    transition: all 0.15s ease;
+  }
+  .phase-btn.active { border-color: var(--sage); background: var(--sage); color: white; }
+  .phase-btn:active { opacity: 0.8; }
+  .phase-indicator {
+    background: var(--sage-pale); border: 1px solid var(--sage-mid);
+    border-radius: 12px; padding: 10px 14px; margin-bottom: 14px;
+    font-size: 0.8rem; color: var(--sage); line-height: 1.5;
+  }
+  .recipe-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
+  }
+  .recipe-name {
+    font-family: 'Playfair Display', serif; font-size: 0.92rem; color: var(--sage);
+    margin-bottom: 6px;
+  }
+  .recipe-meta {
+    font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px;
+    display: flex; gap: 10px;
+  }
+  .recipe-desc { font-size: 0.82rem; color: var(--text); line-height: 1.55; margin-bottom: 8px; }
+  .recipe-why {
+    font-size: 0.74rem; color: var(--sage); font-style: italic;
+    background: var(--sage-pale); border-radius: 8px; padding: 8px 10px;
+    line-height: 1.45;
+  }
+  .recipe-toggle {
+    background: none; border: none; font-family: 'Outfit', sans-serif;
+    font-size: 0.76rem; color: var(--sage); font-weight: 500;
+    cursor: pointer; padding: 6px 0 0; -webkit-appearance: none;
+  }
+  .recipe-ingredients {
+    display: none; margin-top: 8px; font-size: 0.78rem; color: var(--text);
+    line-height: 1.6; padding-left: 16px;
+  }
+  .recipe-ingredients.open { display: block; }
+
+  /* ── LOG BUTTON (shared) ──────────────────────────────────────────────── */
+  .log-btn {
     width: 100%; padding: 15px; border-radius: 14px; border: none;
     background: var(--sage); color: var(--white);
     font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 600;
     cursor: pointer; -webkit-appearance: none; transition: opacity 0.15s ease;
     margin-bottom: 8px;
   }
-  #log-btn:active { opacity: 0.87; }
+  .log-btn:active { opacity: 0.87; }
 
-  /* reusable blink animation — used by insights dots in reports */
   @keyframes blink {
     0%,80%,100% { opacity:0.2; transform:scale(0.8); }
     40%          { opacity:1;   transform:scale(1); }
@@ -205,12 +318,13 @@
     font-size: 0.78rem; text-align: center; margin-bottom: 10px; font-weight: 500;
   }
 
-  #summary-card {
+  /* ── SUMMARY / SAVE STATUS ────────────────────────────────────────────── */
+  .summary-card-inline {
     display: none; background: var(--white); border-radius: var(--radius);
     border: 1px solid var(--border); padding: 20px; margin-top: 10px;
     box-shadow: 0 2px 16px rgba(74,102,82,0.07);
   }
-  #summary-card h2 { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--sage); margin-bottom: 14px; }
+  .summary-card-inline h2 { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--sage); margin-bottom: 14px; }
   .s-row {
     display: flex; justify-content: space-between; align-items: center;
     padding: 8px 0; border-bottom: 1px solid var(--sage-pale); font-size: 0.83rem;
@@ -225,14 +339,13 @@
   .b-no       { background: #f0f0f0; color: #999; }
   .b-mood     { background: var(--sage-pale); color: var(--sage); font-style: italic; }
 
-  #save-status {
+  .save-status {
     display: none; margin-top: 12px; padding: 12px 16px; border-radius: 12px;
     font-size: 0.82rem; text-align: center; font-weight: 500;
   }
-  #save-status.saving { background: var(--sage-pale); border: 1px solid var(--sage-mid); color: var(--sage); }
-  #save-status.saved  { background: var(--mild-bg); border: 1px solid var(--mild); color: var(--sage); }
-  /* soft sage for errors — no reds ever */
-  #save-status.error  { background: var(--sage-pale); border: 1px dashed var(--sage-mid); color: var(--text-muted); }
+  .save-status.saving { background: var(--sage-pale); border: 1px solid var(--sage-mid); color: var(--sage); }
+  .save-status.saved  { background: var(--mild-bg); border: 1px solid var(--mild); color: var(--sage); }
+  .save-status.error  { background: var(--sage-pale); border: 1px dashed var(--sage-mid); color: var(--text-muted); }
 
   /* --- heatmap --- */
   #heatmap-section {
@@ -247,17 +360,9 @@
     font-family: 'Outfit', sans-serif; font-size: 0.74rem; color: var(--text-muted);
     font-weight: 400; font-style: normal;
   }
-  .heatmap-weekdays {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
-    margin-bottom: 6px;
-  }
-  .heatmap-weekdays span {
-    text-align: center; font-size: 0.62rem; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;
-  }
-  .heatmap-grid {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
-  }
+  .heatmap-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 6px; }
+  .heatmap-weekdays span { text-align: center; font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+  .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
   .heat-cell {
     aspect-ratio: 1 / 1; border-radius: 6px; background: transparent;
     display: flex; align-items: center; justify-content: center;
@@ -268,24 +373,15 @@
   .heat-cell.unlogged { background: #f1ece2; color: #b8a98a; }
   .heat-cell.future { background: transparent; color: #c8c2b3; opacity: 0.6; }
   .heat-cell.today { box-shadow: 0 0 0 2px var(--sage) inset; }
-  /* calm green gradient — consistent with severity scale */
   .heat-cell.sev-none     { background: var(--sage-pale); color: var(--sage); }
-  .heat-cell.sev-mild     { background: #c5e0bb;          color: #2d5a3a; }
-  .heat-cell.sev-moderate { background: #93c47d;          color: #1a4028; }
-  .heat-cell.sev-severe   { background: #6aa84f;          color: #ffffff; }
-  .heatmap-legend {
-    display: flex; gap: 10px; margin-top: 12px; justify-content: center;
-    flex-wrap: wrap;
-  }
-  .legend-item {
-    display: flex; align-items: center; gap: 5px;
-    font-size: 0.68rem; color: var(--text-muted);
-  }
-  .legend-swatch {
-    width: 11px; height: 11px; border-radius: 3px;
-  }
+  .heat-cell.sev-mild     { background: #c5e0bb; color: #2d5a3a; }
+  .heat-cell.sev-moderate { background: #93c47d; color: #1a4028; }
+  .heat-cell.sev-severe   { background: #6aa84f; color: #ffffff; }
+  .heatmap-legend { display: flex; gap: 10px; margin-top: 12px; justify-content: center; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; color: var(--text-muted); }
+  .legend-swatch { width: 11px; height: 11px; border-radius: 3px; }
 
-  /* --- footer / calendar + reports buttons --- */
+  /* --- footer --- */
   #cal-footer {
     margin-top: 24px; text-align: center; display: flex; flex-direction: column; gap: 10px;
     align-items: center;
@@ -298,26 +394,20 @@
   }
   #cal-download:active, #reports-btn:active { background: var(--sage-pale); }
 
-  /* =====================================================================
-     REPORTS OVERLAY
-     ===================================================================== */
+  /* ── REPORTS OVERLAY ──────────────────────────────────────────────────── */
   #reports-overlay {
     display: none; position: fixed; inset: 0; z-index: 100;
     background: var(--cream); overflow-y: auto;
     padding: 0 0 60px; -webkit-overflow-scrolling: touch;
   }
   #reports-overlay.open { display: block; }
-
   #reports-topbar {
     position: sticky; top: 0; z-index: 10;
     background: var(--cream); border-bottom: 1px solid var(--border);
     padding: 14px 16px 12px;
     display: flex; align-items: center; gap: 10px;
   }
-  #reports-topbar h2 {
-    font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--sage);
-    flex: 1;
-  }
+  #reports-topbar h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--sage); flex: 1; }
   #reports-pdf-btn {
     background: var(--sage); color: white; border: none;
     padding: 8px 14px; border-radius: 10px; font-family: 'Outfit', sans-serif;
@@ -331,27 +421,16 @@
     -webkit-appearance: none; flex-shrink: 0;
   }
   #reports-close-btn:active { background: var(--sage-pale); }
-
-  #reports-content {
-    max-width: 480px; margin: 0 auto; padding: 16px;
-  }
-
-  /* range presets */
-  #range-presets {
-    display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px;
-  }
+  #reports-content { max-width: 480px; margin: 0 auto; padding: 16px; }
+  #range-presets { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
   .range-btn {
     padding: 8px 14px; border-radius: 20px; border: 1.5px solid var(--border);
     background: var(--white); font-family: 'Outfit', sans-serif; font-size: 0.78rem;
     font-weight: 500; color: var(--text-muted); cursor: pointer; -webkit-appearance: none;
     transition: all 0.15s ease;
   }
-  .range-btn.active {
-    border-color: var(--sage); background: var(--sage); color: white;
-  }
+  .range-btn.active { border-color: var(--sage); background: var(--sage); color: white; }
   .range-btn:active { opacity: 0.8; }
-
-  /* report section cards */
   .report-card {
     background: var(--white); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
@@ -360,73 +439,25 @@
     font-family: 'Playfair Display', serif; font-size: 0.95rem; color: var(--sage);
     margin-bottom: 12px;
   }
-
-  /* summary stats grid */
-  .summary-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-  }
-  .summary-stat {
-    background: var(--sage-pale); border-radius: 10px; padding: 10px 12px;
-  }
-  .summary-stat-label {
-    font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--text-muted); font-weight: 500; margin-bottom: 4px;
-  }
-  .summary-stat-value {
-    font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--sage);
-    line-height: 1.2;
-  }
-  .summary-stat-sub {
-    font-size: 0.7rem; color: var(--text-muted); font-family: 'Outfit', sans-serif;
-    margin-top: 2px;
-  }
-
-  /* per-symptom stacked bars */
-  .symptom-bar-row {
-    margin-bottom: 10px;
-  }
-  .symptom-bar-label {
-    font-size: 0.78rem; color: var(--text); margin-bottom: 5px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .symptom-bar-label .bar-worst {
-    font-size: 0.68rem; color: var(--text-muted);
-  }
-  .symptom-bar-track {
-    height: 10px; border-radius: 999px; background: var(--sage-pale);
-    overflow: hidden; display: flex;
-  }
-  .bar-seg {
-    height: 100%; transition: width 0.5s ease;
-  }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .summary-stat { background: var(--sage-pale); border-radius: 10px; padding: 10px 12px; }
+  .summary-stat-label { font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+  .summary-stat-value { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--sage); line-height: 1.2; }
+  .summary-stat-sub { font-size: 0.7rem; color: var(--text-muted); font-family: 'Outfit', sans-serif; margin-top: 2px; }
+  .symptom-bar-row { margin-bottom: 10px; }
+  .symptom-bar-label { font-size: 0.78rem; color: var(--text); margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+  .symptom-bar-label .bar-worst { font-size: 0.68rem; color: var(--text-muted); }
+  .symptom-bar-track { height: 10px; border-radius: 999px; background: var(--sage-pale); overflow: hidden; display: flex; }
+  .bar-seg { height: 100%; transition: width 0.5s ease; }
   .bar-seg.seg-mild     { background: #c5e0bb; }
   .bar-seg.seg-moderate { background: #93c47d; }
   .bar-seg.seg-severe   { background: #6aa84f; }
-
-  /* report heatmap (same visual as main heatmap) */
-  .report-heatmap-year {
-    margin-bottom: 16px;
-  }
-  .report-month-label {
-    font-family: 'Outfit', sans-serif; font-size: 0.72rem; color: var(--text-muted);
-    font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;
-    margin-bottom: 6px;
-  }
-  .report-heat-weekdays {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 4px;
-  }
-  .report-heat-weekdays span {
-    text-align: center; font-size: 0.58rem; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.04em;
-  }
-  .report-heat-grid {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
-  }
-  .report-heat-cell {
-    aspect-ratio: 1 / 1; border-radius: 4px; background: transparent;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.6rem; color: var(--text-muted); font-weight: 500;
-  }
+  .report-heatmap-year { margin-bottom: 16px; }
+  .report-month-label { font-family: 'Outfit', sans-serif; font-size: 0.72rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .report-heat-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 4px; }
+  .report-heat-weekdays span { text-align: center; font-size: 0.58rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .report-heat-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .report-heat-cell { aspect-ratio: 1 / 1; border-radius: 4px; background: transparent; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: var(--text-muted); font-weight: 500; }
   .report-heat-cell.rh-empty    { }
   .report-heat-cell.rh-future   { opacity: 0.3; }
   .report-heat-cell.rh-unlogged { background: #f1ece2; color: #b8a98a; }
@@ -434,57 +465,23 @@
   .report-heat-cell.rh-mild     { background: #c5e0bb; color: #2d5a3a; }
   .report-heat-cell.rh-moderate { background: #93c47d; color: #1a4028; }
   .report-heat-cell.rh-severe   { background: #6aa84f; color: #ffffff; }
-
-  /* mood strip */
-  .mood-strip {
-    display: flex; flex-wrap: wrap; gap: 6px;
-  }
-  .mood-chip {
-    display: flex; align-items: center; gap: 5px;
-    background: var(--sage-pale); border-radius: 20px;
-    padding: 4px 10px 4px 8px; font-size: 0.72rem; color: var(--sage);
-  }
+  .mood-strip { display: flex; flex-wrap: wrap; gap: 6px; }
+  .mood-chip { display: flex; align-items: center; gap: 5px; background: var(--sage-pale); border-radius: 20px; padding: 4px 10px 4px 8px; font-size: 0.72rem; color: var(--sage); }
   .mood-chip .mood-date { color: var(--text-muted); font-size: 0.65rem; }
-
-  /* loading state */
-  #reports-loading {
-    text-align: center; padding: 40px 16px;
-    font-size: 0.86rem; color: var(--text-muted);
-  }
-
-  /* AI insights card */
-  .insights-trigger {
-    width: 100%; padding: 13px; border-radius: 14px;
-    border: 1.5px dashed var(--sage-mid); background: var(--white);
-    font-family: 'Outfit', sans-serif; font-size: 0.88rem; font-weight: 500;
-    color: var(--sage); cursor: pointer; -webkit-appearance: none;
-    transition: all 0.15s ease;
-  }
+  #reports-loading { text-align: center; padding: 40px 16px; font-size: 0.86rem; color: var(--text-muted); }
+  .insights-trigger { width: 100%; padding: 13px; border-radius: 14px; border: 1.5px dashed var(--sage-mid); background: var(--white); font-family: 'Outfit', sans-serif; font-size: 0.88rem; font-weight: 500; color: var(--sage); cursor: pointer; -webkit-appearance: none; transition: all 0.15s ease; }
   .insights-trigger:active { background: var(--sage-pale); }
   .insights-trigger:disabled { opacity: 0.5; cursor: default; }
-  .insights-dots span {
-    display: inline-block; width: 6px; height: 6px; background: var(--sage-mid);
-    border-radius: 50%; animation: blink 1.2s infinite; margin: 0 2px;
-  }
+  .insights-dots span { display: inline-block; width: 6px; height: 6px; background: var(--sage-mid); border-radius: 50%; animation: blink 1.2s infinite; margin: 0 2px; }
   .insights-dots span:nth-child(2) { animation-delay: 0.2s; }
   .insights-dots span:nth-child(3) { animation-delay: 0.4s; }
-  .insights-body {
-    font-size: 0.86rem; line-height: 1.65; color: var(--text);
-    white-space: pre-wrap;
-  }
+  .insights-body { font-size: 0.86rem; line-height: 1.65; color: var(--text); white-space: pre-wrap; }
   .insights-body strong { color: var(--sage); font-weight: 600; }
-  .insights-meta {
-    margin-top: 10px; font-size: 0.68rem; color: var(--text-muted);
-    font-style: italic;
-  }
+  .insights-meta { margin-top: 10px; font-size: 0.68rem; color: var(--text-muted); font-style: italic; }
 
-  /* =====================================================================
-     PRINT STYLESHEET — only the report content prints
-     ===================================================================== */
   @media print {
     body > *:not(#reports-overlay) { display: none !important; }
-    #reports-overlay { display: block !important; position: static !important;
-      overflow: visible !important; padding: 0 !important; }
+    #reports-overlay { display: block !important; position: static !important; overflow: visible !important; padding: 0 !important; }
     #reports-topbar { position: static !important; border: none !important; }
     #reports-close-btn, #reports-pdf-btn, #range-presets { display: none !important; }
     #reports-content { max-width: 100% !important; padding: 0 !important; }
@@ -505,7 +502,6 @@
 </header>
 <div id="chat-wrap">
 
-  <!-- daily quote card -->
   <div id="quote-card">
     <p id="quote-text"></p>
     <p id="quote-attr"></p>
@@ -514,12 +510,20 @@
   <div id="stats-strip">
     <div class="stat-card">
       <div class="stat-label">Streak</div>
-      <div class="stat-value"><span class="flame">🔥</span><span id="streak-num">0</span><span style="font-size:0.78rem;color:var(--text-muted);font-family:'Outfit',sans-serif;margin-left:4px;" id="streak-suffix">days</span></div>
+      <div class="stat-value"><span class="flame">&#x1F525;</span><span id="streak-num">0</span><span style="font-size:0.78rem;color:var(--text-muted);font-family:'Outfit',sans-serif;margin-left:4px;" id="streak-suffix">days</span></div>
     </div>
     <div class="stat-card">
       <div class="stat-label">This month</div>
       <div class="stat-value"><span id="month-num">0</span><span style="font-size:0.78rem;color:var(--text-muted);font-family:'Outfit',sans-serif;margin-left:4px;" id="month-suffix">/ 0 days</span></div>
       <div class="month-bar"><div class="month-bar-fill" id="month-bar-fill"></div></div>
+    </div>
+  </div>
+
+  <div id="weather-card" style="display:none">
+    <div class="weather-icon" id="weather-icon"></div>
+    <div class="weather-details">
+      <div class="weather-temp" id="weather-temp"></div>
+      <div class="weather-meta" id="weather-meta"></div>
     </div>
   </div>
 
@@ -533,43 +537,94 @@
 
   <div id="date-context"></div>
 
-  <!-- ── LOG VIEW (quick-log grid) ─────────────────────────────────────── -->
-  <div id="log-view">
-    <p id="log-hint">All set to No — just tap what applies today.</p>
-    <div id="grid-card">
-      <div class="grid-head"><p id="grid-head-label">Today's symptoms</p></div>
-      <!-- symptom rows injected by buildGrid() -->
-    </div>
-    <div id="mood-card">
-      <p class="mood-card-title" id="mood-card-title">Mood today</p>
-      <div id="mood-grid"></div>
-      <textarea id="mood-note" rows="2" placeholder="Anything on your mind? (optional)"></textarea>
-    </div>
-    <button id="log-btn" onclick="submitGrid()">Log today</button>
+  <!-- ── TAB BAR ──────────────────────────────────────────────────────── -->
+  <div id="tab-bar">
+    <button class="tab-btn active" data-tab="symptoms"><span class="tab-btn-icon">&#x1F33F;</span>Symptoms</button>
+    <button class="tab-btn" data-tab="mood"><span class="tab-btn-icon">&#x1F4AD;</span>Mood</button>
+    <button class="tab-btn" data-tab="meds"><span class="tab-btn-icon">&#x1F48A;</span>Meds</button>
+    <button class="tab-btn" data-tab="recipes"><span class="tab-btn-icon">&#x1F372;</span>Recipes</button>
   </div>
 
-  <div id="summary-card">
-    <h2 id="summary-title">Today's Summary</h2>
-    <div id="summary-rows"></div>
-  </div>
-  <div id="save-status"></div>
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- SYMPTOMS PANEL                                                     -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel active" id="panel-symptoms">
+    <div id="log-view">
+      <p id="log-hint">All set to No — just tap what applies today.</p>
+      <div id="grid-card">
+        <div class="grid-head"><p id="grid-head-label">Today's symptoms</p></div>
+      </div>
+      <button class="log-btn" id="symptom-log-btn" onclick="submitSymptoms()">Log symptoms</button>
+    </div>
+    <div class="summary-card-inline" id="symptom-summary-card">
+      <h2 id="symptom-summary-title">Today's Summary</h2>
+      <div id="symptom-summary-rows"></div>
+    </div>
+    <div class="save-status" id="symptom-save-status"></div>
 
-  <div id="heatmap-section">
-    <div class="section-title">
-      <span id="heatmap-month-label">This month</span>
-      <span class="sub" id="heatmap-sub"></span>
+    <div id="heatmap-section">
+      <div class="section-title">
+        <span id="heatmap-month-label">This month</span>
+        <span class="sub" id="heatmap-sub"></span>
+      </div>
+      <div class="heatmap-weekdays">
+        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+      </div>
+      <div class="heatmap-grid" id="heatmap-grid"></div>
+      <div class="heatmap-legend">
+        <div class="legend-item"><span class="legend-swatch" style="background:var(--sage-pale)"></span>Symptom-free</div>
+        <div class="legend-item"><span class="legend-swatch" style="background:#c5e0bb"></span>Mild</div>
+        <div class="legend-item"><span class="legend-swatch" style="background:#93c47d"></span>Moderate</div>
+        <div class="legend-item"><span class="legend-swatch" style="background:#6aa84f"></span>Severe</div>
+        <div class="legend-item"><span class="legend-swatch" style="background:#f1ece2"></span>Not logged</div>
+      </div>
     </div>
-    <div class="heatmap-weekdays">
-      <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- MOOD PANEL                                                         -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-mood">
+    <div id="mood-log-view">
+      <div class="mood-card">
+        <p class="mood-card-title" id="mood-card-title">How's your mood today?</p>
+        <div class="mood-grid" id="mood-grid"></div>
+        <textarea class="mood-note" id="mood-note" rows="2" placeholder="Anything on your mind? (optional)"></textarea>
+      </div>
+      <button class="log-btn" id="mood-log-btn" onclick="submitMood()">Log mood</button>
     </div>
-    <div class="heatmap-grid" id="heatmap-grid"></div>
-    <div class="heatmap-legend">
-      <div class="legend-item"><span class="legend-swatch" style="background:var(--sage-pale)"></span>Symptom-free</div>
-      <div class="legend-item"><span class="legend-swatch" style="background:#c5e0bb"></span>Mild</div>
-      <div class="legend-item"><span class="legend-swatch" style="background:#93c47d"></span>Moderate</div>
-      <div class="legend-item"><span class="legend-swatch" style="background:#6aa84f"></span>Severe</div>
-      <div class="legend-item"><span class="legend-swatch" style="background:#f1ece2"></span>Not logged</div>
+    <div class="summary-card-inline" id="mood-summary-card">
+      <h2 id="mood-summary-title">Mood logged</h2>
+      <div id="mood-summary-rows"></div>
     </div>
+    <div class="save-status" id="mood-save-status"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- MEDICATION PANEL                                                   -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-meds">
+    <div id="meds-log-view">
+      <div class="mood-card">
+        <p class="mood-card-title" id="meds-card-title">Today's medications</p>
+        <div id="meds-list"></div>
+      </div>
+      <button class="log-btn" id="meds-log-btn" onclick="submitMeds()">Log medications</button>
+    </div>
+    <div class="summary-card-inline" id="meds-summary-card">
+      <h2>Medications logged</h2>
+      <div id="meds-summary-rows"></div>
+    </div>
+    <div class="save-status" id="meds-save-status"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- RECIPES PANEL                                                      -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-recipes">
+    <div class="phase-indicator" id="phase-indicator"></div>
+    <div class="phase-selector" id="phase-selector"></div>
+    <div id="recipe-list"></div>
   </div>
 
   <div id="cal-footer">
@@ -578,12 +633,12 @@
   </div>
 </div>
 
-<!-- ── Reports overlay ──────────────────────────────────────────────────── -->
+<!-- ── Reports overlay ──────────────────────────────────────────────── -->
 <div id="reports-overlay">
   <div id="reports-topbar">
     <h2>Reports</h2>
     <button id="reports-pdf-btn" onclick="window.print()">Save as PDF</button>
-    <button id="reports-close-btn" aria-label="Close reports">✕</button>
+    <button id="reports-close-btn" aria-label="Close reports">&#x2715;</button>
   </div>
   <div id="reports-content">
     <div id="range-presets">
@@ -592,7 +647,7 @@
       <button class="range-btn" data-range="90">Last 3 months</button>
       <button class="range-btn" data-range="all">All time</button>
     </div>
-    <div id="reports-loading" style="display:none">Loading your data…</div>
+    <div id="reports-loading" style="display:none">Loading your data...</div>
     <div id="reports-body"></div>
   </div>
 </div>
@@ -603,13 +658,12 @@
    ========================================================================= */
 const WORKER_URL = 'https://symptom-proxy.jsouthphotos.workers.dev';
 const TRACKER_URL = 'https://jonsouthy.github.io/Symptom-Tracker/';
-const REMINDER_HOUR = 20;   // 8pm Jamaica
+const REMINDER_HOUR = 20;
 const REMINDER_MIN  = 0;
 const STORAGE_KEY = 'symptomTracker_v1';
 
 /* =========================================================================
-   DAILY QUOTES (curated — extends to ~80+ days before any repeat)
-   Deterministic daily pick: hash ISO date → modulo array length
+   DAILY QUOTES
    ========================================================================= */
 const QUOTES = [
   { q: "Fashion fades, only style remains the same.", a: "Coco Chanel" },
@@ -660,23 +714,134 @@ function dailyQuote() {
   for (const ch of today) hash = ((hash * 31) + ch.charCodeAt(0)) | 0;
   return QUOTES[Math.abs(hash) % QUOTES.length];
 }
-
 function renderQuote() {
   const { q, a } = dailyQuote();
-  document.getElementById('quote-text').textContent = '"' + q + '"';
+  document.getElementById('quote-text').textContent = '“' + q + '”';
   document.getElementById('quote-attr').textContent = '— ' + a;
 }
 
 /* =========================================================================
-   DATE HELPERS (Jamaica timezone, no DST)
+   SYMPTOM + MOOD + MED CONFIG
+   ========================================================================= */
+const SYMPTOMS = [
+  { key: 'migraine',          label: 'Migraine',           type: 'severity' },
+  { key: 'fatigue',           label: 'Fatigue',            type: 'severity' },
+  { key: 'pelvicPain',        label: 'Pelvic Pain',        type: 'severity' },
+  { key: 'backPain',          label: 'Back Pain',          type: 'severity' },
+  { key: 'nausea',            label: 'Nausea',             type: 'severity' },
+  { key: 'nervePain',         label: 'Nerve Pain',         type: 'severity' },
+  { key: 'abdomenDiscomfort', label: 'Abdomen Discomfort', type: 'severity' },
+  { key: 'neckShoulderPain',  label: 'Neck & Shoulder',    type: 'severity' },
+  { key: 'constipation',      label: 'Constipation',       type: 'severity' },
+  { key: 'diarrhea',          label: 'Diarrhea',           type: 'severity' },
+  { key: 'insomnia',          label: 'Insomnia',           type: 'severity' },
+  { key: 'appetite',          label: 'Appetite',           type: 'appetite' },
+];
+const LABELS = {};
+SYMPTOMS.forEach(s => LABELS[s.key] = s.label);
+
+const MOOD_OPTS = [
+  { label: 'Numb',        value: 'Numb',        cls: 'sel-numb'       },
+  { label: 'Rock Bottom', value: 'Rock Bottom', cls: 'sel-rockbottom' },
+  { label: 'Irritable',   value: 'Irritable',   cls: 'sel-irritable'  },
+  { label: 'Sad',         value: 'Sad',         cls: 'sel-sad'        },
+  { label: 'Anxious',     value: 'Anxious',     cls: 'sel-anxious'    },
+  { label: 'Okay',        value: 'Okay',        cls: 'sel-okay'       },
+  { label: 'Happy',       value: 'Happy',       cls: 'sel-happy'      },
+];
+
+const MEDICATIONS = {
+  daily: [
+    { key: 'lanzaprosole',  label: 'Lanzaprosole',    dose: '30mg' },
+    { key: 'epilimChrono',  label: 'Epilim Chrono',   dose: '500mg' },
+    { key: 'algicP',        label: 'Algic P',         dose: '100/500mg — 2x daily' },
+    { key: 'escitalopram',  label: 'Escitalopram',    dose: '15mg' },
+  ],
+  asNeeded: [
+    { key: 'tramadolAcet',  label: 'Tramadol/Acet',   dose: '37.5/325 — 2x/day' },
+    { key: 'gabapentin',    label: 'Gabapentin',      dose: '200mg — 2 at night' },
+    { key: 'sumatriptan',   label: 'Sumatriptan',     dose: '50mg — up to 5/24hrs' },
+    { key: 'panadolUltra',  label: 'Panadol Ultra',   dose: '2 tablets/24hrs' },
+    { key: 'ondansetron',   label: 'Ondansetron',     dose: '8mg' },
+    { key: 'gravol',        label: 'Gravol/Gravenite', dose: '1 tablet — 15mg' },
+    { key: 'milkOfMagnesia',label: 'Milk of Magnesia', dose: '60mg — at night' },
+    { key: 'xanax',         label: 'Xanax',           dose: '0.25mg' },
+  ],
+  supplements: [
+    { key: 'probiotic',  label: 'Pre & Probiotic',         dose: '' },
+    { key: 'magnesium',  label: 'Magnesium L-Threonate',   dose: '144mg — 2-3 at night' },
+    { key: 'turmeric',   label: 'Turmeric',                dose: '1000mg — 1 at night' },
+    { key: 'diclofenac', label: 'Diclofenac Suppository',  dose: '100mg' },
+  ]
+};
+
+/* =========================================================================
+   RECIPE DATA — anti-inflammatory, endo/digestive-friendly
+   ========================================================================= */
+const RECIPES = [
+  // Menstrual (Days 1-5): warming, iron-rich, anti-inflammatory
+  { phase:'menstrual', name:'Turmeric Golden Milk', time:'5 min', desc:'Warming coconut milk with turmeric, ginger, cinnamon and black pepper. Naturally anti-inflammatory and soothing before bed.', why:'Turmeric’s curcumin reduces prostaglandins that drive period pain. Ginger calms nausea.', ing:'Coconut milk, turmeric, fresh ginger, cinnamon, black pepper, maple syrup' },
+  { phase:'menstrual', name:'Ginger Salmon & Sweet Potato', time:'30 min', desc:'Baked salmon fillet over roasted sweet potato with a fresh ginger-lime glaze.', why:'Salmon’s omega-3s are potently anti-inflammatory. Sweet potato provides gentle fibre and iron.', ing:'Salmon fillet, sweet potato, fresh ginger, lime, olive oil, garlic' },
+  { phase:'menstrual', name:'Lentil & Spinach Soup', time:'35 min', desc:'Hearty red lentil soup with wilted spinach, cumin and lemon.', why:'Iron-rich spinach replenishes what’s lost during menstruation. Lentils provide gentle plant protein.', ing:'Red lentils, spinach, onion, garlic, cumin, lemon, olive oil' },
+  { phase:'menstrual', name:'Beet & Berry Smoothie', time:'5 min', desc:'Blended beetroot, mixed berries, banana and oat milk for a vibrant iron boost.', why:'Beets support blood building. Berries are packed with antioxidants that ease inflammation.', ing:'Cooked beetroot, mixed berries, banana, oat milk, flaxseed' },
+  { phase:'menstrual', name:'Bone Broth with Root Veg', time:'20 min (using premade broth)', desc:'Warm chicken bone broth with carrots, parsnips and fresh herbs.', why:'Bone broth’s collagen and amino acids support gut lining repair — key for digestive endo.', ing:'Chicken bone broth, carrots, parsnips, thyme, sea salt' },
+
+  // Follicular (Days 6-14): fresh, light, probiotic-rich
+  { phase:'follicular', name:'Quinoa Buddha Bowl', time:'25 min', desc:'Fluffy quinoa topped with roasted chickpeas, avocado, cucumber, and tahini dressing.', why:'Rising oestrogen needs fibre to metabolise properly. Quinoa is a complete protein and gluten-free.', ing:'Quinoa, chickpeas, avocado, cucumber, cherry tomatoes, tahini, lemon' },
+  { phase:'follicular', name:'Miso Glazed Cod', time:'20 min', desc:'White fish marinated in miso paste, baked and served with steamed bok choy.', why:'Fermented miso feeds beneficial gut bacteria. Light white fish is easy on the digestive system.', ing:'Cod fillet, white miso paste, bok choy, sesame oil, rice vinegar' },
+  { phase:'follicular', name:'Avocado & Kimchi Rice Bowl', time:'15 min', desc:'Steamed jasmine rice with sliced avocado, kimchi, cucumber and sesame seeds.', why:'Kimchi’s probiotics support the gut microbiome. Avocado provides anti-inflammatory healthy fats.', ing:'Jasmine rice, avocado, kimchi, cucumber, sesame seeds, soy sauce' },
+  { phase:'follicular', name:'Green Goddess Smoothie', time:'5 min', desc:'Spinach, banana, mango, coconut water and a squeeze of lime.', why:'Light and hydrating. Mango’s enzymes aid digestion during this lighter phase.', ing:'Spinach, banana, mango, coconut water, lime, chia seeds' },
+  { phase:'follicular', name:'Zucchini Noodle Stir-fry', time:'15 min', desc:'Spiralised zucchini with mushrooms, bell pepper and a ginger-tamari sauce.', why:'Low-bloat alternative to wheat noodles. Mushrooms are rich in vitamin D which supports hormone balance.', ing:'Zucchini, mushrooms, bell pepper, ginger, tamari, sesame oil, garlic' },
+
+  // Ovulatory (Days 15-17): raw/lightly cooked, fibre-rich, liver support
+  { phase:'ovulatory', name:'Rainbow Lettuce Wraps', time:'15 min', desc:'Crisp lettuce cups filled with shredded carrots, mango, mint, and a peanut-lime dressing.', why:'Raw vegetables provide fibre for oestrogen clearance at peak levels. Light and easy to digest.', ing:'Butter lettuce, carrots, mango, mint, peanut butter, lime, chilli flakes' },
+  { phase:'ovulatory', name:'Grilled Fish Lettuce Tacos', time:'20 min', desc:'Seasoned white fish in lettuce wraps with mango salsa and avocado crema.', why:'Lean protein without the heaviness. Lettuce wraps avoid gluten which can trigger endo inflammation.', ing:'White fish, lettuce leaves, mango, avocado, lime, coriander, cumin' },
+  { phase:'ovulatory', name:'Citrus Fennel Salad', time:'10 min', desc:'Thinly sliced fennel with orange segments, olives and a lemon-olive oil dressing.', why:'Fennel is a natural digestive aid and reduces bloating. Citrus supports liver detox of excess oestrogen.', ing:'Fennel bulb, orange, olives, lemon, olive oil, sea salt' },
+  { phase:'ovulatory', name:'Fresh Spring Rolls', time:'20 min', desc:'Rice paper rolls with avocado, cucumber, carrots, herbs and a ginger dipping sauce.', why:'Raw veg and herbs maximise nutrient intake. Rice paper is gentle on the gut.', ing:'Rice paper, avocado, cucumber, carrots, mint, basil, ginger, tamari' },
+  { phase:'ovulatory', name:'Coconut Chickpea Curry', time:'25 min', desc:'Light coconut milk curry with chickpeas, spinach and warming spices.', why:'Chickpeas provide fibre for hormone clearance. Coconut milk is dairy-free and soothing.', ing:'Chickpeas, coconut milk, spinach, turmeric, cumin, ginger, garlic' },
+
+  // Luteal (Days 18-28): complex carbs, magnesium-rich, serotonin support
+  { phase:'luteal', name:'Sweet Potato & Black Bean Chili', time:'35 min', desc:'Comforting one-pot chili with sweet potato, black beans, tomatoes and smoked paprika.', why:'Complex carbs boost serotonin production when progesterone drops. Magnesium in beans eases cramps.', ing:'Sweet potato, black beans, tinned tomatoes, onion, garlic, smoked paprika, cumin' },
+  { phase:'luteal', name:'Banana Oat Pancakes', time:'15 min', desc:'Three-ingredient pancakes made with mashed banana, gluten-free oats and eggs.', why:'Oats provide slow-release energy and magnesium. Banana’s tryptophan supports serotonin and sleep.', ing:'Banana, gluten-free oats, eggs, cinnamon, coconut oil' },
+  { phase:'luteal', name:'Roasted Root Veg with Tahini', time:'35 min', desc:'Carrots, parsnips and beetroot roasted until caramelised, drizzled with lemon tahini.', why:'Root vegetables are grounding and rich in B vitamins. Tahini provides calcium and magnesium.', ing:'Carrots, parsnips, beetroot, olive oil, tahini, lemon, garlic' },
+  { phase:'luteal', name:'Dark Chocolate Avocado Mousse', time:'10 min', desc:'Silky mousse blended from avocado, cacao powder, maple syrup and vanilla.', why:'Dark cacao is one of the richest sources of magnesium. Healthy fats from avocado stabilise blood sugar.', ing:'Avocado, raw cacao powder, maple syrup, vanilla, pinch of sea salt' },
+  { phase:'luteal', name:'Butternut Squash Risotto', time:'35 min', desc:'Creamy arborio rice risotto with roasted butternut squash and sage.', why:'Complex carbs from rice and squash support progesterone production. Sage aids digestion.', ing:'Arborio rice, butternut squash, vegetable stock, sage, olive oil, nutritional yeast' },
+];
+
+const PHASE_INFO = {
+  menstrual:  { label: 'Menstrual Phase', days: 'Days 1–5',  desc: 'Focus on warming, iron-rich, anti-inflammatory foods to replenish and soothe.' },
+  follicular: { label: 'Follicular Phase', days: 'Days 6–14', desc: 'Fresh, light meals with probiotics to support rising energy and gut health.' },
+  ovulatory:  { label: 'Ovulatory Phase',  days: 'Days 15–17', desc: 'Raw and lightly cooked foods with fibre to help your liver clear peak oestrogen.' },
+  luteal:     { label: 'Luteal Phase',     days: 'Days 18–28', desc: 'Complex carbs and magnesium-rich foods to support mood and ease pre-menstrual symptoms.' },
+};
+
+/* =========================================================================
+   WEATHER CONFIG
+   ========================================================================= */
+const WEATHER_CODES = {
+  0:'Clear',1:'Mostly clear',2:'Partly cloudy',3:'Overcast',
+  45:'Foggy',48:'Foggy',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',
+  61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',
+  80:'Light showers',81:'Showers',82:'Heavy showers',95:'Thunderstorm',96:'Thunderstorm',99:'Thunderstorm'
+};
+const WEATHER_ICONS = {
+  0:'☀️',1:'⛅',2:'⛅',3:'☁️',
+  45:'🌫️',48:'🌫️',
+  51:'🌧️',53:'🌧️',55:'🌧️',
+  61:'🌧️',63:'🌧️',65:'🌧️',
+  71:'❄️',73:'❄️',75:'❄️',
+  80:'🌦️',81:'🌦️',82:'🌦️',
+  95:'⚡',96:'⚡',99:'⚡'
+};
+
+/* =========================================================================
+   DATE HELPERS (Jamaica timezone)
    ========================================================================= */
 function jamaicaNow() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Jamaica' }));
 }
 function jamaicaParts(d) {
-  const fmt = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Jamaica', year: 'numeric', month: '2-digit', day: '2-digit'
-  });
+  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Jamaica', year: 'numeric', month: '2-digit', day: '2-digit' });
   const parts = Object.fromEntries(fmt.formatToParts(d).map(p => [p.type, p.value]));
   return { y: +parts.year, m: +parts.month, d: +parts.day };
 }
@@ -688,41 +853,28 @@ function isoKeyFromYMD(y, m, day) {
   return `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 }
 function prettyDate(d) {
-  return d.toLocaleDateString('en-GB', {
-    timeZone: 'America/Jamaica', day: 'numeric', month: 'long', year: 'numeric'
-  });
+  return d.toLocaleDateString('en-GB', { timeZone: 'America/Jamaica', day: 'numeric', month: 'long', year: 'numeric' });
 }
 function prettyDateFromIso(iso) {
   const [y, m, d] = iso.split('-').map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d, 12));
   return prettyDate(dt);
 }
-function daysInMonth(y, m) {
-  return new Date(y, m, 0).getDate();
-}
+function daysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
 
 /* =========================================================================
-   LOCAL HISTORY (the data backbone)
+   LOCAL HISTORY
    ========================================================================= */
 function loadHistory() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { logs: {}, dismissed: {}, moods: {} };
-    const parsed = JSON.parse(raw);
-    return {
-      logs: parsed.logs || {},
-      dismissed: parsed.dismissed || {},
-      moods: parsed.moods || {}
-    };
-  } catch (e) {
-    return { logs: {}, dismissed: {}, moods: {} };
-  }
+    if (!raw) return { logs: {}, dismissed: {}, moods: {}, meds: {}, weather: {} };
+    const p = JSON.parse(raw);
+    return { logs: p.logs||{}, dismissed: p.dismissed||{}, moods: p.moods||{}, meds: p.meds||{}, weather: p.weather||{} };
+  } catch (e) { return { logs: {}, dismissed: {}, moods: {}, meds: {}, weather: {} }; }
 }
-function saveHistory(history) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-  } catch (e) { /* private mode — silently fail */ }
-}
+function saveHistory(h) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); } catch(e){} }
+
 function worstSeverity(data) {
   let worst = 'none';
   const rank = { none: 0, mild: 1, moderate: 2, severe: 3 };
@@ -736,87 +888,46 @@ function worstSeverity(data) {
   }
   return worst;
 }
-function recordLog(iso, prettyDateStr, data) {
-  const history = loadHistory();
-  history.logs[iso] = {
-    date: prettyDateStr,
-    data: data,
-    severity: worstSeverity(data),
-    savedAt: new Date().toISOString()
-  };
-  saveHistory(history);
+function recordLog(iso, prettyStr, data) {
+  const h = loadHistory();
+  h.logs[iso] = { date: prettyStr, data, severity: worstSeverity(data), savedAt: new Date().toISOString() };
+  saveHistory(h);
 }
-function recordMood(iso, prettyDateStr, mood, note) {
-  const history = loadHistory();
-  history.moods[iso] = {
-    date: prettyDateStr,
-    mood: mood,
-    note: note || '',
-    savedAt: new Date().toISOString()
-  };
-  saveHistory(history);
+function recordMood(iso, prettyStr, mood, note) {
+  const h = loadHistory();
+  h.moods[iso] = { date: prettyStr, mood, note: note||'', savedAt: new Date().toISOString() };
+  saveHistory(h);
 }
+function recordMeds(iso, prettyStr, taken) {
+  const h = loadHistory();
+  h.meds[iso] = { date: prettyStr, taken, savedAt: new Date().toISOString() };
+  saveHistory(h);
+}
+function recordWeather(iso, weatherData) {
+  const h = loadHistory();
+  h.weather[iso] = weatherData;
+  saveHistory(h);
+}
+
 function computeStreak() {
-  const history = loadHistory();
-  const logs = history.logs;
+  const logs = loadHistory().logs;
   let streak = 0;
-  const today = jamaicaNow();
-  let cursor = new Date(today);
-  if (!logs[isoKey(cursor)]) {
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  while (logs[isoKey(cursor)]) {
-    streak++;
-    cursor.setDate(cursor.getDate() - 1);
-  }
+  const cursor = new Date(jamaicaNow());
+  if (!logs[isoKey(cursor)]) cursor.setDate(cursor.getDate() - 1);
+  while (logs[isoKey(cursor)]) { streak++; cursor.setDate(cursor.getDate() - 1); }
   return streak;
 }
 function computeMonthProgress() {
-  const history = loadHistory();
-  const today = jamaicaNow();
-  const { y, m, d } = jamaicaParts(today);
+  const logs = loadHistory().logs;
+  const { y, m, d } = jamaicaParts(jamaicaNow());
   let logged = 0;
-  for (let day = 1; day <= d; day++) {
-    if (history.logs[isoKeyFromYMD(y, m, day)]) logged++;
-  }
+  for (let day = 1; day <= d; day++) { if (logs[isoKeyFromYMD(y, m, day)]) logged++; }
   return { logged, elapsed: d, totalInMonth: daysInMonth(y, m) };
 }
 
 /* =========================================================================
    APP STATE
    ========================================================================= */
-const SYMPTOMS = [
-  { key: 'migraine',          label: 'Migraine',             type: 'severity' },
-  { key: 'fatigue',           label: 'Fatigue',              type: 'severity' },
-  { key: 'pelvicPain',        label: 'Pelvic Pain',          type: 'severity' },
-  { key: 'backPain',          label: 'Back Pain',            type: 'severity' },
-  { key: 'nausea',            label: 'Nausea',               type: 'severity' },
-  { key: 'nervePain',         label: 'Nerve Pain',           type: 'severity' },
-  { key: 'abdomenDiscomfort', label: 'Abdomen Discomfort',   type: 'severity' },
-  { key: 'neckShoulderPain',  label: 'Neck & Shoulder',      type: 'severity' },
-  { key: 'constipation',      label: 'Constipation',         type: 'severity' },
-  { key: 'insomnia',          label: 'Insomnia',             type: 'severity' },
-  { key: 'appetite',          label: 'Appetite',             type: 'appetite' },
-];
-const LABELS = {
-  migraine: 'Migraine', nausea: 'Nausea', pelvicPain: 'Pelvic Pain',
-  backPain: 'Back Pain', constipation: 'Constipation', fatigue: 'Fatigue',
-  nervePain: 'Nerve Pain', insomnia: 'Insomnia', abdomenDiscomfort: 'Abdomen Discomfort',
-  neckShoulderPain: 'Neck & Shoulder Pain', appetite: 'Appetite'
-};
-
-// Mood scale — 7 steps matching the Google Sheet dropdown (col B = Description)
-const MOOD_OPTS = [
-  { label: 'Numb',        value: 'Numb'        },
-  { label: 'Rock Bottom', value: 'Rock Bottom' },
-  { label: 'Irritable',   value: 'Irritable'   },
-  { label: 'Sad',         value: 'Sad'         },
-  { label: 'Anxious',     value: 'Anxious'     },
-  { label: 'Okay',        value: 'Okay'        },
-  { label: 'Happy',       value: 'Happy'       },
-];
-
-// session state
 let collected = {};
 let targetDate = jamaicaNow();
 let targetIso = isoKey(targetDate);
@@ -824,18 +935,26 @@ let targetPretty = prettyDate(targetDate);
 let isYesterdayMode = false;
 let collectedMood = '';
 let collectedNote = '';
+let collectedMeds = {};
+let activeTab = 'symptoms';
+let activePhase = null;
 
 document.getElementById('today-date').textContent = targetPretty;
 
 /* =========================================================================
-   DOM REFS
+   TAB SWITCHING
    ========================================================================= */
-const saveStatus   = document.getElementById('save-status');
-const missedBanner = document.getElementById('missed-banner');
-const dateContext  = document.getElementById('date-context');
+function switchTab(tabName) {
+  activeTab = tabName;
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabName));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tabName));
+}
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => switchTab(btn.dataset.tab);
+});
 
 /* =========================================================================
-   STATS STRIP RENDERING
+   STATS + HEATMAP
    ========================================================================= */
 function renderStats() {
   const streak = computeStreak();
@@ -848,9 +967,6 @@ function renderStats() {
   document.getElementById('month-bar-fill').style.width = pct + '%';
 }
 
-/* =========================================================================
-   HEATMAP
-   ========================================================================= */
 function renderHeatmap() {
   const history = loadHistory();
   const today = jamaicaNow();
@@ -858,17 +974,11 @@ function renderHeatmap() {
   const total = daysInMonth(y, m);
   const monthName = today.toLocaleDateString('en-US', { timeZone:'America/Jamaica', month: 'long' });
   document.getElementById('heatmap-month-label').textContent = monthName + ' ' + y;
-
   const firstOfMonth = new Date(Date.UTC(y, m - 1, 1, 12));
   const firstWeekday = firstOfMonth.getUTCDay();
-
   const grid = document.getElementById('heatmap-grid');
   grid.innerHTML = '';
-  for (let i = 0; i < firstWeekday; i++) {
-    const c = document.createElement('div');
-    c.className = 'heat-cell empty';
-    grid.appendChild(c);
-  }
+  for (let i = 0; i < firstWeekday; i++) { const c = document.createElement('div'); c.className = 'heat-cell empty'; grid.appendChild(c); }
   let loggedCount = 0;
   for (let day = 1; day <= total; day++) {
     const iso = isoKeyFromYMD(y, m, day);
@@ -876,22 +986,50 @@ function renderHeatmap() {
     cell.className = 'heat-cell';
     cell.textContent = day;
     cell.title = prettyDateFromIso(iso);
-    if (day > todayDay) {
-      cell.classList.add('future');
-    } else if (history.logs[iso]) {
-      loggedCount++;
-      const sev = history.logs[iso].severity || 'none';
-      cell.classList.add('sev-' + sev);
-      const sevLabel = sev === 'none' ? 'symptom-free' : sev;
-      cell.title += ' — ' + sevLabel;
-    } else {
-      cell.classList.add('unlogged');
-    }
+    if (day > todayDay) { cell.classList.add('future'); }
+    else if (history.logs[iso]) { loggedCount++; const sev = history.logs[iso].severity || 'none'; cell.classList.add('sev-' + sev); }
+    else { cell.classList.add('unlogged'); }
     if (day === todayDay) cell.classList.add('today');
     grid.appendChild(cell);
   }
-  document.getElementById('heatmap-sub').textContent =
-    loggedCount + ' / ' + todayDay + ' logged';
+  document.getElementById('heatmap-sub').textContent = loggedCount + ' / ' + todayDay + ' logged';
+}
+
+/* =========================================================================
+   WEATHER
+   ========================================================================= */
+async function fetchWeather() {
+  const todayIso = isoKey(jamaicaNow());
+  const h = loadHistory();
+  // Only fetch once per day
+  if (h.weather[todayIso] && h.weather[todayIso].temp !== undefined) {
+    renderWeather(h.weather[todayIso]);
+    return;
+  }
+  try {
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=18.0179&longitude=-76.8099&current=temperature_2m,relative_humidity_2m,surface_pressure,weather_code&timezone=America/Jamaica');
+    const data = await res.json();
+    if (data.current) {
+      const w = {
+        temp: Math.round(data.current.temperature_2m),
+        humidity: Math.round(data.current.relative_humidity_2m),
+        pressure: Math.round(data.current.surface_pressure),
+        code: data.current.weather_code,
+        condition: WEATHER_CODES[data.current.weather_code] || 'Unknown',
+        fetchedAt: new Date().toISOString()
+      };
+      recordWeather(todayIso, w);
+      renderWeather(w);
+    }
+  } catch (e) { /* weather is optional — fail silently */ }
+}
+
+function renderWeather(w) {
+  const card = document.getElementById('weather-card');
+  card.style.display = 'flex';
+  document.getElementById('weather-icon').textContent = WEATHER_ICONS[w.code] || '☁️';
+  document.getElementById('weather-temp').textContent = w.temp + '°C — ' + w.condition;
+  document.getElementById('weather-meta').textContent = 'Humidity ' + w.humidity + '% · Pressure ' + w.pressure + ' hPa';
 }
 
 /* =========================================================================
@@ -903,23 +1041,19 @@ function maybeShowMissedDay() {
   yesterday.setDate(yesterday.getDate() - 1);
   const yIso = isoKey(yesterday);
   const todayIso = isoKey(jamaicaNow());
-
   if (history.logs[yIso]) return;
   if (history.dismissed[todayIso] === yIso) return;
   if (Object.keys(history.logs).length === 0) return;
-
-  document.getElementById('missed-banner-text').textContent =
-    "Looks like yesterday (" + prettyDateFromIso(yIso) + ") isn't logged yet. Want to log it now?";
-  missedBanner.style.display = 'block';
-
+  document.getElementById('missed-banner-text').textContent = "Looks like yesterday (" + prettyDateFromIso(yIso) + ") isn’t logged yet. Want to log it now?";
+  document.getElementById('missed-banner').style.display = 'block';
   document.getElementById('missed-yes').onclick = () => {
-    missedBanner.style.display = 'none';
+    document.getElementById('missed-banner').style.display = 'none';
     startYesterdayFlow(yesterday);
   };
   document.getElementById('missed-no').onclick = () => {
     history.dismissed[todayIso] = yIso;
     saveHistory(history);
-    missedBanner.style.display = 'none';
+    document.getElementById('missed-banner').style.display = 'none';
   };
 }
 
@@ -928,67 +1062,48 @@ function startYesterdayFlow(yesterdayDate) {
   targetIso = isoKey(targetDate);
   targetPretty = prettyDate(targetDate);
   isYesterdayMode = true;
-  collectedMood = '';
-  collectedNote = '';
-
-  // Hide summary if showing
-  document.getElementById('summary-card').style.display = 'none';
-  saveStatus.style.display = 'none';
-
-  // Show date context banner
-  dateContext.style.display = 'block';
-  dateContext.textContent = "Logging for yesterday — " + targetPretty;
-
-  // Update labels to "yesterday" context
+  document.getElementById('symptom-summary-card').style.display = 'none';
+  document.getElementById('symptom-save-status').style.display = 'none';
+  document.getElementById('date-context').style.display = 'block';
+  document.getElementById('date-context').textContent = "Logging for yesterday — " + targetPretty;
   document.getElementById('grid-head-label').textContent = "Yesterday's symptoms";
   document.getElementById('mood-card-title').textContent = "Mood yesterday";
-  document.getElementById('log-btn').textContent = "Log yesterday";
+  document.getElementById('symptom-log-btn').textContent = "Log yesterday's symptoms";
+  document.getElementById('mood-log-btn').textContent = "Log yesterday's mood";
+  document.getElementById('meds-card-title').textContent = "Yesterday's medications";
+  document.getElementById('meds-log-btn').textContent = "Log yesterday's meds";
   document.getElementById('log-hint').textContent = "All set to No — just tap what applied yesterday.";
-
-  // Rebuild grid fresh with all defaults
   buildGrid();
   buildMoodSection();
-
+  buildMedsSection();
+  switchTab('symptoms');
   document.getElementById('log-view').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 /* =========================================================================
-   GRID FUNCTIONS
+   SYMPTOM GRID
    ========================================================================= */
 function buildGrid() {
   const card = document.getElementById('grid-card');
-  // Remove any existing symptom rows (keeps the .grid-head)
   card.querySelectorAll('.sym-row').forEach(r => r.remove());
-
   SYMPTOMS.forEach(sym => {
     const defaultVal = sym.type === 'appetite' ? 'Normal' : 'no';
     collected[sym.key] = defaultVal;
-
     const row = document.createElement('div');
     row.className = 'sym-row';
-
     const nameEl = document.createElement('span');
     nameEl.className = 'sym-name';
     nameEl.textContent = sym.label;
     row.appendChild(nameEl);
-
     const seg = document.createElement('div');
     seg.className = 'seg';
-
     const opts = sym.type === 'appetite'
       ? [{ v: 'Normal', l: 'Normal' }, { v: 'Abnormal', l: 'Abnormal' }]
-      : [
-          { v: 'no',       l: 'No'       },
-          { v: 'Mild',     l: 'Mild'     },
-          { v: 'Moderate', l: 'Moderate' },
-          { v: 'Severe',   l: 'Severe'   },
-        ];
-
+      : [{ v: 'no', l: 'No' }, { v: 'Mild', l: 'Mild' }, { v: 'Moderate', l: 'Moderate' }, { v: 'Severe', l: 'Severe' }];
     opts.forEach(opt => {
       const btn = document.createElement('button');
-      const isDefault = opt.v === defaultVal;
-      btn.className = 'seg-btn' + (isDefault ? ' sel-' + opt.v.toLowerCase() : '');
+      btn.className = 'seg-btn' + (opt.v === defaultVal ? ' sel-' + opt.v.toLowerCase() : '');
       btn.textContent = opt.l;
       btn.onclick = () => {
         seg.querySelectorAll('.seg-btn').forEach(b => b.className = 'seg-btn');
@@ -997,12 +1112,14 @@ function buildGrid() {
       };
       seg.appendChild(btn);
     });
-
     row.appendChild(seg);
     card.appendChild(row);
   });
 }
 
+/* =========================================================================
+   MOOD SECTION
+   ========================================================================= */
 function buildMoodSection() {
   collectedMood = '';
   const grid = document.getElementById('mood-grid');
@@ -1012,8 +1129,8 @@ function buildMoodSection() {
     btn.className = 'mood-btn';
     btn.textContent = opt.label;
     btn.onclick = () => {
-      grid.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('sel'));
-      btn.classList.add('sel');
+      grid.querySelectorAll('.mood-btn').forEach(b => { b.className = 'mood-btn'; });
+      btn.className = 'mood-btn ' + opt.cls;
       collectedMood = opt.value;
     };
     grid.appendChild(btn);
@@ -1021,61 +1138,227 @@ function buildMoodSection() {
   document.getElementById('mood-note').value = '';
 }
 
-async function submitGrid() {
-  collectedNote = document.getElementById('mood-note').value.trim();
-  // Hide grid, show summary
-  document.getElementById('log-view').style.display = 'none';
-  showSummary();
-  await saveToSheets();
-  if (collectedMood) await saveMoodToSheets();
+/* =========================================================================
+   MEDICATION SECTION
+   ========================================================================= */
+function buildMedsSection() {
+  collectedMeds = {};
+  const list = document.getElementById('meds-list');
+  list.innerHTML = '';
+
+  // Check if today's meds already logged
+  const h = loadHistory();
+  const existingMeds = h.meds[targetIso] ? h.meds[targetIso].taken : {};
+
+  function addSection(title, meds) {
+    const titleEl = document.createElement('div');
+    titleEl.className = 'med-section-title';
+    titleEl.textContent = title;
+    list.appendChild(titleEl);
+    const card = document.createElement('div');
+    card.className = 'med-card';
+    meds.forEach(med => {
+      collectedMeds[med.key] = existingMeds[med.key] || false;
+      const row = document.createElement('div');
+      row.className = 'med-row';
+      const check = document.createElement('button');
+      check.className = 'med-check' + (collectedMeds[med.key] ? ' checked' : '');
+      check.textContent = '✓';
+      check.onclick = () => {
+        collectedMeds[med.key] = !collectedMeds[med.key];
+        check.classList.toggle('checked', collectedMeds[med.key]);
+      };
+      const info = document.createElement('div');
+      info.className = 'med-info';
+      info.innerHTML = '<div class="med-name">' + med.label + '</div>' + (med.dose ? '<div class="med-dose">' + med.dose + '</div>' : '');
+      row.appendChild(check);
+      row.appendChild(info);
+      card.appendChild(row);
+    });
+    list.appendChild(card);
+  }
+
+  addSection('Daily', MEDICATIONS.daily);
+  addSection('As Needed', MEDICATIONS.asNeeded);
+  addSection('Supplements', MEDICATIONS.supplements);
 }
 
 /* =========================================================================
-   SUMMARY CARD
+   RECIPE SECTION
+   ========================================================================= */
+function getCycleDay() {
+  // Check latest logged cycle date from localStorage
+  const h = loadHistory();
+  const today = jamaicaNow();
+  // Look back up to 40 days for the most recent cycle day entry
+  for (let i = 0; i < 40; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const iso = isoKey(d);
+    if (h.logs[iso] && h.logs[iso].data && h.logs[iso].data.cycleDate) {
+      const cd = h.logs[iso].data.cycleDate;
+      const match = cd.match(/Day\s*(\d+)/i);
+      if (match) {
+        const dayNum = parseInt(match[1]) + i; // Advance by days since that log
+        return dayNum;
+      }
+    }
+  }
+  return null;
+}
+
+function getPhaseFromDay(day) {
+  if (!day || day < 1) return null;
+  if (day <= 5) return 'menstrual';
+  if (day <= 14) return 'follicular';
+  if (day <= 17) return 'ovulatory';
+  return 'luteal';
+}
+
+function buildRecipeSection() {
+  const cycleDay = getCycleDay();
+  const detectedPhase = getPhaseFromDay(cycleDay);
+  activePhase = detectedPhase || 'menstrual';
+
+  // Phase indicator
+  const indicator = document.getElementById('phase-indicator');
+  if (cycleDay) {
+    const info = PHASE_INFO[detectedPhase];
+    indicator.innerHTML = 'Based on your cycle (Day ' + cycleDay + '), you’re in the <strong>' + info.label + '</strong>. ' + info.desc;
+    indicator.style.display = 'block';
+  } else {
+    indicator.innerHTML = 'No recent cycle data found. Browse recipes by phase below, or log your cycle day in the Symptoms tab.';
+    indicator.style.display = 'block';
+  }
+
+  // Phase selector buttons
+  const selector = document.getElementById('phase-selector');
+  selector.innerHTML = '';
+  for (const [key, info] of Object.entries(PHASE_INFO)) {
+    const btn = document.createElement('button');
+    btn.className = 'phase-btn' + (key === activePhase ? ' active' : '');
+    btn.textContent = info.label.replace(' Phase', '');
+    btn.onclick = () => {
+      activePhase = key;
+      selector.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderRecipes();
+    };
+    selector.appendChild(btn);
+  }
+
+  renderRecipes();
+}
+
+function renderRecipes() {
+  const list = document.getElementById('recipe-list');
+  list.innerHTML = '';
+  const filtered = RECIPES.filter(r => r.phase === activePhase);
+  filtered.forEach(recipe => {
+    const card = document.createElement('div');
+    card.className = 'recipe-card';
+    const ingId = 'ing-' + recipe.name.replace(/\s+/g, '-').toLowerCase();
+    card.innerHTML =
+      '<div class="recipe-name">' + recipe.name + '</div>' +
+      '<div class="recipe-meta"><span>' + recipe.time + '</span></div>' +
+      '<div class="recipe-desc">' + recipe.desc + '</div>' +
+      '<div class="recipe-why">' + recipe.why + '</div>' +
+      '<button class="recipe-toggle" onclick="this.nextElementSibling.classList.toggle(\'open\');this.textContent=this.nextElementSibling.classList.contains(\'open\')?\'▲ Hide ingredients\':\'▼ Show ingredients\'">&#x25BC; Show ingredients</button>' +
+      '<div class="recipe-ingredients" id="' + ingId + '">' + recipe.ing.split(', ').map(i => '• ' + i).join('<br>') + '</div>';
+    list.appendChild(card);
+  });
+}
+
+/* =========================================================================
+   SUBMIT HANDLERS
    ========================================================================= */
 function scrollBottom() {
   setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
 }
 
-function showSummary() {
-  const card = document.getElementById('summary-card');
-  const titleEl = document.getElementById('summary-title');
-  const rows = document.getElementById('summary-rows');
+async function submitSymptoms() {
+  document.getElementById('log-view').style.display = 'none';
+  showSymptomSummary();
+  await saveToSheets();
+}
+
+async function submitMood() {
+  collectedNote = document.getElementById('mood-note').value.trim();
+  if (!collectedMood) { alert('Please select a mood first.'); return; }
+  document.getElementById('mood-log-view').style.display = 'none';
+  showMoodSummary();
+  await saveMoodToSheets();
+}
+
+async function submitMeds() {
+  document.getElementById('meds-log-view').style.display = 'none';
+  showMedsSummary();
+  await saveMedsToSheets();
+}
+
+/* =========================================================================
+   SUMMARY CARDS
+   ========================================================================= */
+function showSymptomSummary() {
+  const card = document.getElementById('symptom-summary-card');
+  const rows = document.getElementById('symptom-summary-rows');
   rows.innerHTML = '';
-
-  titleEl.textContent = isYesterdayMode ? "Yesterday's Summary" : "Today's Summary";
-
-  // Show only notable entries (skip 'no' / 'Normal' defaults)
+  document.getElementById('symptom-summary-title').textContent = isYesterdayMode ? "Yesterday's Summary" : "Today's Summary";
   const notable = Object.entries(collected).filter(([k, v]) => v !== 'no' && v !== 'Normal');
-
   if (notable.length === 0) {
-    const clearRow = document.createElement('div');
-    clearRow.className = 's-row';
-    clearRow.style.justifyContent = 'center';
-    const dayWord = isYesterdayMode ? 'yesterday' : 'today';
-    clearRow.innerHTML = '<span style="color:var(--sage);font-size:0.9rem;">All clear ' + dayWord + ' 🌿</span>';
-    rows.appendChild(clearRow);
+    const r = document.createElement('div');
+    r.className = 's-row'; r.style.justifyContent = 'center';
+    r.innerHTML = '<span style="color:var(--sage);font-size:0.9rem;">All clear ' + (isYesterdayMode ? 'yesterday' : 'today') + ' &#x1F33F;</span>';
+    rows.appendChild(r);
   } else {
     for (const [key, val] of notable) {
-      const row = document.createElement('div');
-      row.className = 's-row';
-      const bc = val === 'Severe'   ? 'b-severe'
-               : val === 'Moderate' ? 'b-moderate'
-               : val === 'Mild'     ? 'b-mild'
-               : val === 'Abnormal' ? 'b-moderate'
-               : val === 'Normal'   ? 'b-normal'
-               : 'b-no';
-      row.innerHTML = '<span class="s-name">' + LABELS[key] + '</span><span class="badge ' + bc + '">' + val + '</span>';
-      rows.appendChild(row);
+      const r = document.createElement('div');
+      r.className = 's-row';
+      const bc = val==='Severe'?'b-severe':val==='Moderate'?'b-moderate':val==='Mild'?'b-mild':val==='Abnormal'?'b-moderate':'b-no';
+      r.innerHTML = '<span class="s-name">' + LABELS[key] + '</span><span class="badge ' + bc + '">' + val + '</span>';
+      rows.appendChild(r);
     }
   }
+  card.style.display = 'block';
+  scrollBottom();
+}
 
-  // Mood row
-  if (collectedMood) {
-    const moodRow = document.createElement('div');
-    moodRow.className = 's-row';
-    moodRow.innerHTML = '<span class="s-name">Mood</span><span class="badge b-mood">' + collectedMood + '</span>';
-    rows.appendChild(moodRow);
+function showMoodSummary() {
+  const card = document.getElementById('mood-summary-card');
+  const rows = document.getElementById('mood-summary-rows');
+  rows.innerHTML = '';
+  const r = document.createElement('div');
+  r.className = 's-row';
+  r.innerHTML = '<span class="s-name">Mood</span><span class="badge b-mood">' + collectedMood + '</span>';
+  rows.appendChild(r);
+  if (collectedNote) {
+    const n = document.createElement('div');
+    n.className = 's-row';
+    n.innerHTML = '<span class="s-name">Note</span><span style="font-size:0.8rem;color:var(--text);max-width:200px;text-align:right;">' + collectedNote + '</span>';
+    rows.appendChild(n);
+  }
+  card.style.display = 'block';
+  scrollBottom();
+}
+
+function showMedsSummary() {
+  const card = document.getElementById('meds-summary-card');
+  const rows = document.getElementById('meds-summary-rows');
+  rows.innerHTML = '';
+  const allMeds = [...MEDICATIONS.daily, ...MEDICATIONS.asNeeded, ...MEDICATIONS.supplements];
+  const taken = allMeds.filter(m => collectedMeds[m.key]);
+  if (taken.length === 0) {
+    const r = document.createElement('div');
+    r.className = 's-row'; r.style.justifyContent = 'center';
+    r.innerHTML = '<span style="color:var(--text-muted);font-size:0.85rem;">No medications logged</span>';
+    rows.appendChild(r);
+  } else {
+    taken.forEach(med => {
+      const r = document.createElement('div');
+      r.className = 's-row';
+      r.innerHTML = '<span class="s-name">' + med.label + '</span><span class="badge b-normal">✓</span>';
+      rows.appendChild(r);
+    });
   }
   card.style.display = 'block';
   scrollBottom();
@@ -1085,58 +1368,66 @@ function showSummary() {
    SAVE TO SHEETS
    ========================================================================= */
 async function saveToSheets() {
-  saveStatus.style.display = 'block';
-  saveStatus.className = 'saving';
-  saveStatus.textContent = 'Saving to your sheet...';
+  const status = document.getElementById('symptom-save-status');
+  status.style.display = 'block'; status.className = 'save-status saving'; status.textContent = 'Saving...';
   scrollBottom();
   try {
     const res = await fetch(WORKER_URL + '/sheets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ date: targetPretty, data: collected }),
     });
     const result = await res.json();
     if (result.success) {
       recordLog(targetIso, targetPretty, collected);
-      renderStats();
-      renderHeatmap();
-      saveStatus.className = 'saved';
-      saveStatus.textContent = 'Saved to your sheet!';
-    } else {
-      throw new Error(result.error || 'Unknown error');
-    }
+      renderStats(); renderHeatmap();
+      status.className = 'save-status saved'; status.textContent = 'Saved!';
+    } else { throw new Error(result.error || 'Unknown error'); }
   } catch (e) {
     recordLog(targetIso, targetPretty, collected);
-    renderStats();
-    renderHeatmap();
-    saveStatus.className = 'error';
-    saveStatus.textContent = 'Saved locally — could not reach sheet: ' + e.message;
+    renderStats(); renderHeatmap();
+    status.className = 'save-status error'; status.textContent = 'Saved locally — ' + e.message;
   }
   scrollBottom();
 }
 
 async function saveMoodToSheets() {
   if (!collectedMood) return;
-  // Save locally first regardless of network
   recordMood(targetIso, targetPretty, collectedMood, collectedNote);
+  const status = document.getElementById('mood-save-status');
+  status.style.display = 'block'; status.className = 'save-status saving'; status.textContent = 'Saving mood...';
   try {
     const res = await fetch(WORKER_URL + '/sheets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tab: 'Mood',
-        date: targetPretty,
-        data: { mood: collectedMood, note: collectedNote }
-      }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tab: 'Mood', date: targetPretty, data: { mood: collectedMood, note: collectedNote } }),
     });
     const result = await res.json();
-    if (!result.success) {
-      saveStatus.className = 'error';
-      saveStatus.textContent = 'Mood saved locally — sheet write failed: ' + (result.error || 'unknown');
+    if (result.success) {
+      status.className = 'save-status saved'; status.textContent = 'Mood saved!';
+    } else {
+      status.className = 'save-status error'; status.textContent = 'Mood saved locally — sheet error';
     }
   } catch (e) {
-    saveStatus.className = 'error';
-    saveStatus.textContent = 'Mood saved locally — could not reach sheet: ' + e.message;
+    status.className = 'save-status error'; status.textContent = 'Mood saved locally — ' + e.message;
+  }
+}
+
+async function saveMedsToSheets() {
+  recordMeds(targetIso, targetPretty, collectedMeds);
+  const status = document.getElementById('meds-save-status');
+  status.style.display = 'block'; status.className = 'save-status saving'; status.textContent = 'Saving medications...';
+  try {
+    const res = await fetch(WORKER_URL + '/sheets', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tab: 'Medication', date: targetPretty, data: collectedMeds }),
+    });
+    const result = await res.json();
+    if (result.success) {
+      status.className = 'save-status saved'; status.textContent = 'Medications saved!';
+    } else {
+      status.className = 'save-status error'; status.textContent = 'Saved locally — sheet error';
+    }
+  } catch (e) {
+    status.className = 'save-status error'; status.textContent = 'Saved locally — ' + e.message;
   }
 }
 
@@ -1146,59 +1437,28 @@ async function saveMoodToSheets() {
 function pad(n) { return String(n).padStart(2, '0'); }
 function buildIcs() {
   const now = jamaicaNow();
-  const start = new Date(now);
-  start.setDate(start.getDate() + 1);
-  const y = start.getFullYear();
-  const m = pad(start.getMonth() + 1);
-  const d = pad(start.getDate());
+  const start = new Date(now); start.setDate(start.getDate() + 1);
+  const y = start.getFullYear(), m = pad(start.getMonth() + 1), d = pad(start.getDate());
   const dtStart = `${y}${m}${d}T${pad(REMINDER_HOUR)}${pad(REMINDER_MIN)}00`;
   const dtEnd   = `${y}${m}${d}T${pad(REMINDER_HOUR)}${pad(REMINDER_MIN + 15 < 60 ? REMINDER_MIN + 15 : 59)}00`;
   const stampUtc = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
   const uid = 'endo-tracker-daily-' + Date.now() + '@jonsouthy.github.io';
-
-  const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Endo Tracker//Daily Reminder//EN',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    'BEGIN:VTIMEZONE',
-    'TZID:America/Jamaica',
-    'BEGIN:STANDARD',
-    'DTSTART:19700101T000000',
-    'TZOFFSETFROM:-0500',
-    'TZOFFSETTO:-0500',
-    'TZNAME:EST',
-    'END:STANDARD',
-    'END:VTIMEZONE',
-    'BEGIN:VEVENT',
-    'UID:' + uid,
-    'DTSTAMP:' + stampUtc,
-    'DTSTART;TZID=America/Jamaica:' + dtStart,
-    'DTEND;TZID=America/Jamaica:' + dtEnd,
-    'RRULE:FREQ=DAILY',
-    'SUMMARY:Log today\'s symptoms 🌿',
-    'DESCRIPTION:Quick check-in for the symptom tracker.\\n\\n' + TRACKER_URL,
-    'URL:' + TRACKER_URL,
-    'BEGIN:VALARM',
-    'TRIGGER:-PT0M',
-    'ACTION:DISPLAY',
-    'DESCRIPTION:Log today\'s symptoms',
-    'END:VALARM',
-    'END:VEVENT',
-    'END:VCALENDAR'
-  ];
-  return lines.join('\r\n');
+  return [
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Endo Tracker//Daily Reminder//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+    'BEGIN:VTIMEZONE','TZID:America/Jamaica','BEGIN:STANDARD','DTSTART:19700101T000000','TZOFFSETFROM:-0500','TZOFFSETTO:-0500','TZNAME:EST','END:STANDARD','END:VTIMEZONE',
+    'BEGIN:VEVENT','UID:' + uid,'DTSTAMP:' + stampUtc,
+    'DTSTART;TZID=America/Jamaica:' + dtStart,'DTEND;TZID=America/Jamaica:' + dtEnd,
+    'RRULE:FREQ=DAILY','SUMMARY:Log today\'s symptoms 🌿',
+    'DESCRIPTION:Quick check-in for the symptom tracker.\\n\\n' + TRACKER_URL,'URL:' + TRACKER_URL,
+    'BEGIN:VALARM','TRIGGER:-PT0M','ACTION:DISPLAY','DESCRIPTION:Log today\'s symptoms','END:VALARM',
+    'END:VEVENT','END:VCALENDAR'
+  ].join('\r\n');
 }
 function downloadIcs() {
   const blob = new Blob([buildIcs()], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'symptom-tracker-daily-reminder.ics';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  const a = document.createElement('a'); a.href = url; a.download = 'symptom-tracker-daily-reminder.ics';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 document.getElementById('cal-download').onclick = downloadIcs;
@@ -1206,48 +1466,24 @@ document.getElementById('cal-download').onclick = downloadIcs;
 /* =========================================================================
    REPORTS
    ========================================================================= */
-
-// Symptom keys in display order for the bars
 const SYMPTOM_KEYS_ORDERED = [
-  'fatigue','pelvicPain','abdomenDiscomfort','constipation','backPain',
+  'fatigue','pelvicPain','abdomenDiscomfort','constipation','diarrhea','backPain',
   'nausea','migraine','nervePain','neckShoulderPain','insomnia','appetite'
 ];
-const SYMPTOM_LABELS_SHORT = {
-  migraine: 'Migraine', nausea: 'Nausea', pelvicPain: 'Pelvic Pain',
-  backPain: 'Back Pain', constipation: 'Constipation', fatigue: 'Fatigue',
-  nervePain: 'Nerve Pain', insomnia: 'Insomnia', abdomenDiscomfort: 'Abdomen Discomfort',
-  neckShoulderPain: 'Neck & Shoulder', appetite: 'Appetite'
-};
 
-let activeRange = 'month'; // tracks the selected preset
+let activeRange = 'month';
 
-// Build the ISO date range for a given preset
 function rangeFromPreset(preset) {
   const today = isoKey(jamaicaNow());
   const { y, m } = jamaicaParts(jamaicaNow());
   let from, to;
-  if (preset === 'month') {
-    from = isoKeyFromYMD(y, m, 1);
-    to   = today;
-  } else if (preset === '30') {
-    const d = jamaicaNow();
-    d.setDate(d.getDate() - 29);
-    from = isoKey(d);
-    to   = today;
-  } else if (preset === '90') {
-    const d = jamaicaNow();
-    d.setDate(d.getDate() - 89);
-    from = isoKey(d);
-    to   = today;
-  } else {
-    // 'all' — use a fixed far-back date so the worker can read ALL monthly tabs
-    from = '2025-01-01';
-    to   = today;
-  }
+  if (preset === 'month') { from = isoKeyFromYMD(y, m, 1); to = today; }
+  else if (preset === '30') { const d = jamaicaNow(); d.setDate(d.getDate() - 29); from = isoKey(d); to = today; }
+  else if (preset === '90') { const d = jamaicaNow(); d.setDate(d.getDate() - 89); from = isoKey(d); to = today; }
+  else { from = '2025-01-01'; to = today; }
   return { from, to };
 }
 
-// Fetch from worker and merge into localStorage
 async function fetchAndMerge(from, to) {
   try {
     const [sympRes, moodRes] = await Promise.all([
@@ -1256,409 +1492,238 @@ async function fetchAndMerge(from, to) {
     ]);
     const sympData = await sympRes.json();
     const moodData = await moodRes.json();
-
     const history = loadHistory();
-    // Merge symptom data (worker fills in gaps not yet in localStorage)
     if (sympData.success) {
       for (const [iso, row] of Object.entries(sympData.data)) {
         if (row.date) {
           const data = {};
-          for (const k of SYMPTOM_KEYS_ORDERED) {
-            if (row[k]) data[k] = row[k];
-          }
+          for (const k of SYMPTOM_KEYS_ORDERED) { if (row[k]) data[k] = row[k]; }
           if (Object.keys(data).length > 0) {
-            history.logs[iso] = {
-              date: row.date, data, severity: worstSeverity(data),
-              savedAt: row.date, fromWorker: true
-            };
+            history.logs[iso] = { date: row.date, data, severity: worstSeverity(data), savedAt: row.date, fromWorker: true };
           }
         }
       }
     }
-    // Merge mood data — server is source of truth
     if (moodData.success) {
       for (const [iso, row] of Object.entries(moodData.data)) {
-        if (row.mood) {
-          history.moods[iso] = {
-            date: row.date, mood: row.mood, note: row.note || ''
-          };
-        }
+        if (row.mood) { history.moods[iso] = { date: row.date, mood: row.mood, note: row.note || '' }; }
       }
     }
     saveHistory(history);
     return history;
-  } catch (e) {
-    // Worker unreachable — just use local cache
-    return loadHistory();
-  }
+  } catch (e) { return loadHistory(); }
 }
 
-// Render the full report for the given range
 function renderReport(history, from, to) {
   const body = document.getElementById('reports-body');
   body.innerHTML = '';
-
-  // Collect all logged days in range
   const days = [];
   let cursor = from;
   while (cursor <= to) {
     days.push(cursor);
     const [y, m, d] = cursor.split('-').map(Number);
-    const next = new Date(Date.UTC(y, m - 1, d + 1, 12));
-    cursor = isoKey(next);
+    cursor = isoKey(new Date(Date.UTC(y, m - 1, d + 1, 12)));
   }
-
   const loggedDays = days.filter(iso => history.logs[iso]);
-  const total = days.filter(iso => iso <= isoKey(jamaicaNow())).length; // exclude future
+  const total = days.filter(iso => iso <= isoKey(jamaicaNow())).length;
 
-  // ── Summary stats ──────────────────────────────────────────────────────────
-  const summaryCard = document.createElement('div');
-  summaryCard.className = 'report-card';
+  // Summary stats
+  const summaryCard = document.createElement('div'); summaryCard.className = 'report-card';
   summaryCard.innerHTML = '<div class="report-card-title">Summary</div>';
-  const grid = document.createElement('div');
-  grid.className = 'summary-grid';
-
-  // Days logged
-  grid.appendChild(statCell(loggedDays.length + ' / ' + total, 'Days logged',
-    Math.round((loggedDays.length / Math.max(total,1)) * 100) + '% of range'));
-
-  // Most common symptom
+  const grid = document.createElement('div'); grid.className = 'summary-grid';
+  grid.appendChild(statCell(loggedDays.length + ' / ' + total, 'Days logged', Math.round((loggedDays.length / Math.max(total,1)) * 100) + '%'));
   const symptomCounts = {};
   for (const iso of loggedDays) {
     const data = history.logs[iso].data;
-    for (const k of SYMPTOM_KEYS_ORDERED) {
-      if (data[k] && data[k] !== 'no' && data[k] !== 'Normal' && data[k] !== '') {
-        symptomCounts[k] = (symptomCounts[k] || 0) + 1;
-      }
-    }
+    for (const k of SYMPTOM_KEYS_ORDERED) { if (data[k] && data[k] !== 'no' && data[k] !== 'Normal') symptomCounts[k] = (symptomCounts[k] || 0) + 1; }
   }
   const topSymptom = Object.entries(symptomCounts).sort((a,b) => b[1]-a[1])[0];
-  grid.appendChild(statCell(
-    topSymptom ? SYMPTOM_LABELS_SHORT[topSymptom[0]] : '—',
-    'Most common',
-    topSymptom ? topSymptom[1] + ' of ' + loggedDays.length + ' logged days' : 'no data'
-  ));
-
-  // Days with any symptom
+  grid.appendChild(statCell(topSymptom ? LABELS[topSymptom[0]] : '—', 'Most common', topSymptom ? topSymptom[1] + ' days' : 'no data'));
   const daysWithSymptom = loggedDays.filter(iso => history.logs[iso].severity !== 'none').length;
-  grid.appendChild(statCell(daysWithSymptom + '', 'Days with symptoms',
-    Math.round((daysWithSymptom / Math.max(loggedDays.length,1)) * 100) + '% of ' + loggedDays.length + ' logged'));
-
-  // Mood logged count
+  grid.appendChild(statCell(daysWithSymptom + '', 'Symptom days', Math.round((daysWithSymptom / Math.max(loggedDays.length,1)) * 100) + '%'));
   const moodDays = days.filter(iso => history.moods && history.moods[iso]);
-  grid.appendChild(statCell(moodDays.length + '', 'Mood entries',
-    moodDays.length > 0 ? 'of ' + loggedDays.length + ' logged days' : 'none yet'));
-
+  grid.appendChild(statCell(moodDays.length + '', 'Mood entries', ''));
   summaryCard.appendChild(grid);
   body.appendChild(summaryCard);
 
-  // ── Data coverage note (shown when logged days are a small fraction of the range) ──
-  if (total > 0 && loggedDays.length > 0) {
-    const sortedLogged = [...loggedDays].sort();
-    const firstLogged = sortedLogged[0];
-    const lastLogged  = sortedLogged[sortedLogged.length - 1];
-    const spansDays   = days.indexOf(lastLogged) - days.indexOf(firstLogged) + 1;
-    if (total > 35 && spansDays < total * 0.5) {
-      const noteDiv = document.createElement('div');
-      noteDiv.style.cssText = 'margin-bottom:12px;padding:10px 14px;background:var(--sage-pale);border-radius:10px;font-size:0.78rem;color:var(--sage);line-height:1.5;';
-      noteDiv.textContent = '📋 All ' + loggedDays.length + ' logged entries fall between ' +
-        prettyDateFromIso(firstLogged) + ' – ' + prettyDateFromIso(lastLogged) +
-        '. The stats below reflect only those days.';
-      body.appendChild(noteDiv);
+  // Weather correlation card
+  const weatherDays = days.filter(iso => history.weather && history.weather[iso]);
+  if (weatherDays.length > 3) {
+    const wCard = document.createElement('div'); wCard.className = 'report-card';
+    wCard.innerHTML = '<div class="report-card-title">Weather correlation</div>';
+    // Calculate average severity score vs pressure
+    let severeWithLowP = 0, severeWithHighP = 0, lowPDays = 0, highPDays = 0;
+    const pressures = weatherDays.map(iso => history.weather[iso].pressure).filter(Boolean);
+    const avgPressure = pressures.reduce((a,b) => a+b, 0) / pressures.length;
+    for (const iso of weatherDays) {
+      const w = history.weather[iso];
+      const sev = history.logs[iso] ? history.logs[iso].severity : 'none';
+      if (w.pressure && w.pressure < avgPressure) { lowPDays++; if (sev === 'severe' || sev === 'moderate') severeWithLowP++; }
+      else if (w.pressure) { highPDays++; if (sev === 'severe' || sev === 'moderate') severeWithHighP++; }
     }
+    const lowPct = lowPDays > 0 ? Math.round((severeWithLowP / lowPDays) * 100) : 0;
+    const highPct = highPDays > 0 ? Math.round((severeWithHighP / highPDays) * 100) : 0;
+    wCard.innerHTML += '<div style="font-size:0.82rem;color:var(--text);line-height:1.6;">' +
+      'Low pressure days (&lt;' + Math.round(avgPressure) + ' hPa): <strong>' + lowPct + '%</strong> had moderate/severe symptoms<br>' +
+      'High pressure days: <strong>' + highPct + '%</strong> had moderate/severe symptoms' +
+      '</div>';
+    body.appendChild(wCard);
   }
 
-  // ── Per-symptom bars ───────────────────────────────────────────────────────
+  // Per-symptom bars
   if (loggedDays.length > 0) {
-    const barsCard = document.createElement('div');
-    barsCard.className = 'report-card';
-    barsCard.innerHTML = '<div class="report-card-title">Symptom breakdown <span style="font-family:\'Outfit\',sans-serif;font-size:0.72rem;color:var(--text-muted);font-weight:400;">· ' + loggedDays.length + ' logged days</span></div>';
-
+    const barsCard = document.createElement('div'); barsCard.className = 'report-card';
+    barsCard.innerHTML = '<div class="report-card-title">Symptom breakdown</div>';
     for (const key of SYMPTOM_KEYS_ORDERED) {
-      let none = 0, mild = 0, moderate = 0, severe = 0;
+      let mild = 0, moderate = 0, severe = 0;
       for (const iso of loggedDays) {
         const v = history.logs[iso].data[key] || '';
-        if (v === 'Severe')   severe++;
-        else if (v === 'Moderate' || v === 'Abnormal') moderate++;
-        else if (v === 'Mild') mild++;
-        else none++;
+        if (v === 'Severe') severe++; else if (v === 'Moderate' || v === 'Abnormal') moderate++; else if (v === 'Mild') mild++;
       }
-      const total_d = loggedDays.length;
-      if (total_d === 0) continue;
-      const pctMild     = Math.round((mild     / total_d) * 100);
-      const pctModerate = Math.round((moderate / total_d) * 100);
-      const pctSevere   = Math.round((severe   / total_d) * 100);
-
-      const worstLabel = severe > 0 ? 'Severe' : moderate > 0 ? 'Moderate' : mild > 0 ? 'Mild' : 'None';
-
-      const row = document.createElement('div');
-      row.className = 'symptom-bar-row';
-      row.innerHTML =
-        `<div class="symptom-bar-label">
-           <span>${SYMPTOM_LABELS_SHORT[key]}</span>
-           <span class="bar-worst">${pctMild + pctModerate + pctSevere > 0 ? 'up to ' + worstLabel : 'None'}</span>
-         </div>
-         <div class="symptom-bar-track">
-           <div class="bar-seg seg-mild"     style="width:${pctMild}%"></div>
-           <div class="bar-seg seg-moderate" style="width:${pctModerate}%"></div>
-           <div class="bar-seg seg-severe"   style="width:${pctSevere}%"></div>
-         </div>`;
+      const td = loggedDays.length;
+      const pM = Math.round((mild/td)*100), pMo = Math.round((moderate/td)*100), pS = Math.round((severe/td)*100);
+      const worst = severe > 0 ? 'Severe' : moderate > 0 ? 'Moderate' : mild > 0 ? 'Mild' : 'None';
+      const row = document.createElement('div'); row.className = 'symptom-bar-row';
+      row.innerHTML = `<div class="symptom-bar-label"><span>${LABELS[key]||key}</span><span class="bar-worst">${pM+pMo+pS>0?'up to '+worst:'None'}</span></div><div class="symptom-bar-track"><div class="bar-seg seg-mild" style="width:${pM}%"></div><div class="bar-seg seg-moderate" style="width:${pMo}%"></div><div class="bar-seg seg-severe" style="width:${pS}%"></div></div>`;
       barsCard.appendChild(row);
     }
     body.appendChild(barsCard);
   }
 
-  // ── Heatmap grid ───────────────────────────────────────────────────────────
-  const heatCard = document.createElement('div');
-  heatCard.className = 'report-card';
+  // Heatmap
+  const heatCard = document.createElement('div'); heatCard.className = 'report-card';
   heatCard.innerHTML = '<div class="report-card-title">Day-by-day</div>';
-
-  // Group days by month for the multi-month view
   const byMonth = {};
-  for (const iso of days) {
-    const [y, m] = iso.split('-');
-    const key = y + '-' + m;
-    if (!byMonth[key]) byMonth[key] = { y: +y, m: +m, days: [] };
-    byMonth[key].days.push(iso);
-  }
-
+  for (const iso of days) { const [y, m] = iso.split('-'); const key = y+'-'+m; if (!byMonth[key]) byMonth[key] = { y:+y, m:+m }; }
   const todayIso = isoKey(jamaicaNow());
-  for (const [, { y, m, days: mdays }] of Object.entries(byMonth)) {
-    const monthDiv = document.createElement('div');
-    monthDiv.className = 'report-heatmap-year';
-    const label = document.createElement('div');
-    label.className = 'report-month-label';
-    label.textContent = new Date(Date.UTC(y, m - 1, 1, 12))
-      .toLocaleDateString('en-US', { month: 'long' }) + ' ' + y;
-    monthDiv.appendChild(label);
-
-    const wdRow = document.createElement('div');
-    wdRow.className = 'report-heat-weekdays';
-    ['S','M','T','W','T','F','S'].forEach(d => {
-      const s = document.createElement('span'); s.textContent = d; wdRow.appendChild(s);
-    });
-    monthDiv.appendChild(wdRow);
-
-    const gridDiv = document.createElement('div');
-    gridDiv.className = 'report-heat-grid';
-
-    const firstOfMonth = new Date(Date.UTC(y, m - 1, 1, 12));
-    const offset = firstOfMonth.getUTCDay();
-    const totalDays = daysInMonth(y, m);
-
-    for (let i = 0; i < offset; i++) {
-      const c = document.createElement('div');
-      c.className = 'report-heat-cell rh-empty'; gridDiv.appendChild(c);
-    }
-    for (let d = 1; d <= totalDays; d++) {
+  for (const [, { y, m }] of Object.entries(byMonth)) {
+    const mDiv = document.createElement('div'); mDiv.className = 'report-heatmap-year';
+    mDiv.innerHTML = '<div class="report-month-label">' + new Date(Date.UTC(y, m-1, 1, 12)).toLocaleDateString('en-US', { month: 'long' }) + ' ' + y + '</div>';
+    const wd = document.createElement('div'); wd.className = 'report-heat-weekdays';
+    ['S','M','T','W','T','F','S'].forEach(d => { const s = document.createElement('span'); s.textContent = d; wd.appendChild(s); });
+    mDiv.appendChild(wd);
+    const gDiv = document.createElement('div'); gDiv.className = 'report-heat-grid';
+    const offset = new Date(Date.UTC(y, m-1, 1, 12)).getUTCDay();
+    for (let i = 0; i < offset; i++) { const c = document.createElement('div'); c.className = 'report-heat-cell rh-empty'; gDiv.appendChild(c); }
+    for (let d = 1; d <= daysInMonth(y, m); d++) {
       const iso = isoKeyFromYMD(y, m, d);
-      const cell = document.createElement('div');
-      cell.className = 'report-heat-cell';
-      cell.textContent = d;
-      if (iso > todayIso) {
-        cell.classList.add('rh-future');
-      } else if (iso < from || iso > to) {
-        cell.classList.add('rh-empty'); cell.style.opacity = '0.2';
-      } else if (history.logs[iso]) {
-        const sev = history.logs[iso].severity || 'none';
-        cell.classList.add('rh-' + sev);
-      } else if (iso <= todayIso) {
-        cell.classList.add('rh-unlogged');
-      }
-      gridDiv.appendChild(cell);
+      const cell = document.createElement('div'); cell.className = 'report-heat-cell'; cell.textContent = d;
+      if (iso > todayIso) cell.classList.add('rh-future');
+      else if (iso < from || iso > to) { cell.classList.add('rh-empty'); cell.style.opacity = '0.2'; }
+      else if (history.logs[iso]) cell.classList.add('rh-' + (history.logs[iso].severity || 'none'));
+      else if (iso <= todayIso) cell.classList.add('rh-unlogged');
+      gDiv.appendChild(cell);
     }
-    monthDiv.appendChild(gridDiv);
-    heatCard.appendChild(monthDiv);
+    mDiv.appendChild(gDiv); heatCard.appendChild(mDiv);
   }
   body.appendChild(heatCard);
 
-  // ── Mood overlay ───────────────────────────────────────────────────────────
+  // Mood
   if (moodDays.length > 0) {
-    const moodCard = document.createElement('div');
-    moodCard.className = 'report-card';
-    moodCard.innerHTML = '<div class="report-card-title">Mood</div>';
-    const strip = document.createElement('div');
-    strip.className = 'mood-strip';
+    const mCard = document.createElement('div'); mCard.className = 'report-card';
+    mCard.innerHTML = '<div class="report-card-title">Mood</div>';
+    const strip = document.createElement('div'); strip.className = 'mood-strip';
     for (const iso of moodDays) {
       const entry = history.moods[iso];
-      const chip = document.createElement('div');
-      chip.className = 'mood-chip';
-      const dateLabel = iso.slice(5).replace('-', '/');
-      chip.innerHTML = `<span class="mood-date">${dateLabel}</span> ${entry.mood}`;
+      const chip = document.createElement('div'); chip.className = 'mood-chip';
+      chip.innerHTML = `<span class="mood-date">${iso.slice(5).replace('-','/')}</span> ${entry.mood}`;
       if (entry.note) chip.title = entry.note;
       strip.appendChild(chip);
     }
-    moodCard.appendChild(strip);
-    body.appendChild(moodCard);
+    mCard.appendChild(strip); body.appendChild(mCard);
   }
 
-  // ── AI insights ────────────────────────────────────────────────────────────
-  const insightsCard = document.createElement('div');
-  insightsCard.className = 'report-card';
-  insightsCard.id = 'insights-card';
+  // AI insights
+  const insightsCard = document.createElement('div'); insightsCard.className = 'report-card';
   insightsCard.innerHTML = '<div class="report-card-title">Insights</div>';
-
   const insightsContent = document.createElement('div');
-  insightsContent.id = 'insights-content';
-
-  const triggerBtn = document.createElement('button');
-  triggerBtn.className = 'insights-trigger';
+  const triggerBtn = document.createElement('button'); triggerBtn.className = 'insights-trigger';
   triggerBtn.textContent = '✦ Analyse patterns in this range';
   triggerBtn.onclick = () => runInsightsAnalysis(history, from, to, days, loggedDays, moodDays, insightsContent, triggerBtn);
-
   insightsContent.appendChild(triggerBtn);
-  insightsCard.appendChild(insightsContent);
-  body.appendChild(insightsCard);
+  insightsCard.appendChild(insightsContent); body.appendChild(insightsCard);
 }
 
-// Build a compact plain-text summary of the data to send to Claude
 function buildDataSummary(history, from, to, days, loggedDays, moodDays) {
-  const lines = [];
-  lines.push(`Date range: ${prettyDateFromIso(from)} – ${prettyDateFromIso(to)}`);
-  lines.push(`Days in range: ${days.filter(d => d <= isoKey(jamaicaNow())).length} (${loggedDays.length} logged)`);
-  lines.push('');
-
-  // Per-symptom breakdown
-  lines.push('Symptom frequency (out of ' + loggedDays.length + ' logged days):');
+  const lines = [`Date range: ${prettyDateFromIso(from)} – ${prettyDateFromIso(to)}`, `Days: ${days.filter(d=>d<=isoKey(jamaicaNow())).length} (${loggedDays.length} logged)`, ''];
+  lines.push('Symptom frequency:');
   for (const key of SYMPTOM_KEYS_ORDERED) {
-    let mild = 0, moderate = 0, severe = 0;
-    for (const iso of loggedDays) {
-      const v = history.logs[iso].data[key] || '';
-      if (v === 'Severe') severe++;
-      else if (v === 'Moderate' || v === 'Abnormal') moderate++;
-      else if (v === 'Mild') mild++;
-    }
-    const anyDays = mild + moderate + severe;
-    if (anyDays > 0) {
-      const parts = [];
-      if (mild)     parts.push(`Mild ${mild}d`);
-      if (moderate) parts.push(`Moderate ${moderate}d`);
-      if (severe)   parts.push(`Severe ${severe}d`);
-      lines.push(`  ${SYMPTOM_LABELS_SHORT[key]}: ${parts.join(', ')} (${anyDays} total days)`);
+    let mild=0,moderate=0,severe=0;
+    for (const iso of loggedDays) { const v=history.logs[iso].data[key]||''; if(v==='Severe')severe++; else if(v==='Moderate'||v==='Abnormal')moderate++; else if(v==='Mild')mild++; }
+    if (mild+moderate+severe > 0) {
+      const parts = []; if(mild)parts.push(`Mild ${mild}d`); if(moderate)parts.push(`Moderate ${moderate}d`); if(severe)parts.push(`Severe ${severe}d`);
+      lines.push(`  ${LABELS[key]||key}: ${parts.join(', ')}`);
     }
   }
   lines.push('');
-
-  // Mood distribution
   if (moodDays.length > 0) {
-    lines.push('Mood entries (' + moodDays.length + ' days):');
-    const moodCounts = {};
-    for (const iso of moodDays) {
-      const m = history.moods[iso].mood;
-      moodCounts[m] = (moodCounts[m] || 0) + 1;
-    }
-    for (const [mood, count] of Object.entries(moodCounts)) {
-      lines.push(`  ${mood}: ${count} days`);
+    lines.push('Mood:');
+    const mc = {};
+    for (const iso of moodDays) { const m = history.moods[iso].mood; mc[m] = (mc[m]||0)+1; }
+    for (const [mood, count] of Object.entries(mc)) lines.push(`  ${mood}: ${count}d`);
+    lines.push('');
+  }
+  // Weather summary if available
+  const weatherDays = loggedDays.filter(iso => history.weather && history.weather[iso]);
+  if (weatherDays.length > 0) {
+    lines.push('Weather data available for ' + weatherDays.length + ' days');
+    const pressures = weatherDays.map(iso => history.weather[iso].pressure).filter(Boolean);
+    if (pressures.length > 0) {
+      lines.push(`  Pressure range: ${Math.min(...pressures)}-${Math.max(...pressures)} hPa`);
     }
     lines.push('');
   }
-
-  // Severity overview
-  const sevCounts = { none: 0, mild: 0, moderate: 0, severe: 0 };
-  for (const iso of loggedDays) {
-    sevCounts[history.logs[iso].severity || 'none']++;
-  }
-  lines.push(`Overall severity breakdown:`);
-  lines.push(`  Symptom-free: ${sevCounts.none}d, Mild: ${sevCounts.mild}d, Moderate: ${sevCounts.moderate}d, Severe: ${sevCounts.severe}d`);
-
+  const sc = {none:0,mild:0,moderate:0,severe:0};
+  for (const iso of loggedDays) sc[history.logs[iso].severity||'none']++;
+  lines.push(`Severity: Free ${sc.none}d, Mild ${sc.mild}d, Moderate ${sc.moderate}d, Severe ${sc.severe}d`);
   return lines.join('\n');
 }
 
 async function runInsightsAnalysis(history, from, to, days, loggedDays, moodDays, container, triggerBtn) {
-  triggerBtn.disabled = true;
-  triggerBtn.textContent = 'Analysing…';
-
-  // Show typing dots while waiting
-  const dotsDiv = document.createElement('div');
-  dotsDiv.className = 'insights-dots';
-  dotsDiv.style.marginTop = '10px';
-  dotsDiv.innerHTML = '<span></span><span></span><span></span>';
-  container.appendChild(dotsDiv);
-
+  triggerBtn.disabled = true; triggerBtn.textContent = 'Analysing…';
+  const dotsDiv = document.createElement('div'); dotsDiv.className = 'insights-dots'; dotsDiv.style.marginTop = '10px';
+  dotsDiv.innerHTML = '<span></span><span></span><span></span>'; container.appendChild(dotsDiv);
   const dataSummary = buildDataSummary(history, from, to, days, loggedDays, moodDays);
-
-  const systemPrompt = `You are a warm, thoughtful health insights assistant helping someone manage endometriosis affecting their digestive system. Your role is to notice patterns in symptom and mood data and offer gentle, practical observations.
-
-Guidelines:
-- Use warm, calm language — never alarming or clinical
-- Note both what's been difficult AND any positive patterns or improvements
-- Identify correlations between symptoms if they appear
-- Mention anything that might be worth discussing with a doctor
-- Keep it under 280 words, written in short readable paragraphs
-- Use **bold** sparingly to highlight the most important observations
-- Do not give medical advice or diagnoses`;
-
-  const userPrompt = `Here is the symptom and mood tracking data for the selected date range:\n\n${dataSummary}\n\nPlease analyse any patterns or trends you notice and share what might be most useful to know.`;
-
+  const systemPrompt = `You are a warm, thoughtful health insights assistant helping someone manage endometriosis affecting their digestive system. Note both difficulties AND positive patterns. Identify correlations between symptoms, mood, and weather if data is available. Mention anything worth discussing with a doctor. Keep under 280 words. Use **bold** sparingly. Do not give medical advice.`;
+  const userPrompt = `Here is the tracking data:\n\n${dataSummary}\n\nAnalyse patterns and share what might be most useful to know.`;
   try {
     const res = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 500,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-      })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 500, system: systemPrompt, messages: [{ role: 'user', content: userPrompt }] })
     });
     const data = await res.json();
-    dotsDiv.remove();
-    triggerBtn.remove();
-
+    dotsDiv.remove(); triggerBtn.remove();
     if (data.content && data.content[0] && data.content[0].text) {
-      const analysisText = data.content[0].text.trim();
-      const bodyDiv = document.createElement('div');
-      bodyDiv.className = 'insights-body';
-      // Render **bold** markdown
-      bodyDiv.innerHTML = analysisText
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n\n/g, '<br><br>');
+      const bodyDiv = document.createElement('div'); bodyDiv.className = 'insights-body';
+      bodyDiv.innerHTML = data.content[0].text.trim().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n\n/g, '<br><br>');
       container.appendChild(bodyDiv);
-
-      const meta = document.createElement('div');
-      meta.className = 'insights-meta';
-      meta.textContent = 'AI-generated observations — not medical advice. Always discuss with your doctor.';
+      const meta = document.createElement('div'); meta.className = 'insights-meta';
+      meta.textContent = 'AI-generated observations — not medical advice.';
       container.appendChild(meta);
-    } else {
-      throw new Error(data.error?.message || 'Unexpected response');
-    }
+    } else { throw new Error('Unexpected response'); }
   } catch (e) {
-    dotsDiv.remove();
-    triggerBtn.disabled = false;
-    triggerBtn.textContent = '✦ Analyse patterns in this range';
-    const errDiv = document.createElement('div');
-    errDiv.style.cssText = 'font-size:0.82rem;color:var(--text-muted);margin-top:8px;';
-    errDiv.textContent = 'Could not load analysis — please try again.';
-    container.appendChild(errDiv);
-    setTimeout(() => errDiv.remove(), 4000);
+    dotsDiv.remove(); triggerBtn.disabled = false; triggerBtn.textContent = '✦ Analyse patterns in this range';
+    const err = document.createElement('div'); err.style.cssText = 'font-size:0.82rem;color:var(--text-muted);margin-top:8px;';
+    err.textContent = 'Could not load analysis — please try again.';
+    container.appendChild(err); setTimeout(() => err.remove(), 4000);
   }
 }
 
 function statCell(value, label, sub) {
-  const div = document.createElement('div');
-  div.className = 'summary-stat';
-  div.innerHTML =
-    `<div class="summary-stat-label">${label}</div>
-     <div class="summary-stat-value">${value}</div>
-     <div class="summary-stat-sub">${sub}</div>`;
+  const div = document.createElement('div'); div.className = 'summary-stat';
+  div.innerHTML = `<div class="summary-stat-label">${label}</div><div class="summary-stat-value">${value}</div><div class="summary-stat-sub">${sub}</div>`;
   return div;
 }
 
-// Open / close reports overlay
 async function openReports() {
-  const overlay = document.getElementById('reports-overlay');
-  overlay.classList.add('open');
+  document.getElementById('reports-overlay').classList.add('open');
   window.scrollTo(0, 0);
   await loadReportRange(activeRange);
 }
 
 async function loadReportRange(preset) {
   activeRange = preset;
-  // Update active button
-  document.querySelectorAll('.range-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.range === preset);
-  });
+  document.querySelectorAll('.range-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.range === preset));
   document.getElementById('reports-body').innerHTML = '';
   document.getElementById('reports-loading').style.display = 'block';
   const { from, to } = rangeFromPreset(preset);
@@ -1668,12 +1733,8 @@ async function loadReportRange(preset) {
 }
 
 document.getElementById('reports-btn').onclick = openReports;
-document.getElementById('reports-close-btn').onclick = () => {
-  document.getElementById('reports-overlay').classList.remove('open');
-};
-document.querySelectorAll('.range-btn').forEach(btn => {
-  btn.onclick = () => loadReportRange(btn.dataset.range);
-});
+document.getElementById('reports-close-btn').onclick = () => document.getElementById('reports-overlay').classList.remove('open');
+document.querySelectorAll('.range-btn').forEach(btn => { btn.onclick = () => loadReportRange(btn.dataset.range); });
 
 /* =========================================================================
    INIT
@@ -1685,7 +1746,10 @@ function init() {
   renderHeatmap();
   buildGrid();
   buildMoodSection();
+  buildMedsSection();
+  buildRecipeSection();
   maybeShowMissedDay();
+  fetchWeather();
 }
 init();
 </script>
